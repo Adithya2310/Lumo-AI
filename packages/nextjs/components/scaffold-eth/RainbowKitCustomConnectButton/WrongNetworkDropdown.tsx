@@ -1,9 +1,16 @@
 import { NetworkOptions } from "./NetworkOptions";
-import { useDisconnect } from "wagmi";
-import { ArrowLeftOnRectangleIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 export const WrongNetworkDropdown = () => {
-  const { disconnect } = useDisconnect();
+  // const { signOut } = useSignOut();
+
+  // const handleSignOut = async () => {
+  //   try {
+  //     await signOut();
+  //   } catch (error) {
+  //     console.error("Failed to sign out:", error);
+  //   }
+  // };
 
   return (
     <div className="dropdown dropdown-end mr-2">
@@ -17,14 +24,14 @@ export const WrongNetworkDropdown = () => {
       >
         <NetworkOptions />
         <li>
-          <button
+          {/* <button
             className="menu-item text-error btn-sm rounded-xl! flex gap-3 py-3"
             type="button"
-            onClick={() => disconnect()}
+            onClick={() => handleSignOut()}
           >
             <ArrowLeftOnRectangleIcon className="h-6 w-4 ml-2 sm:ml-0" />
             <span>Disconnect</span>
-          </button>
+          </button> */}
         </li>
       </ul>
     </div>
