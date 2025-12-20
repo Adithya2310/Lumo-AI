@@ -1,80 +1,113 @@
-# 🏗 Scaffold-ETH 2
+# Lumo AI
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
+Lumo AI is an on-chain, pay-per-use AI investment platform that automates long-term wealth building across multiple DeFi protocols, including lending, liquidity, and yield strategies. It converts user goals into optimized allocations and executes them on-chain through smart contracts.
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+Instead of subscriptions or API keys, Lumo AI uses x402 to enable direct, verifiable micropayments between AI agents—ensuring every strategy update and decision is paid for in real time, transparently and on-chain.
 
-⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
+---
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+## 🧠 What Problem Does Lumo AI Solve?
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+Most AI services today rely on:
 
-## Requirements
+* Monthly subscriptions
+* API keys
+* Centralized payment infrastructure
 
-Before you begin, you need to install the following tools:
+This makes it impossible for **AI agents to independently purchase services from other AI agents**.
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
+Lumo AI removes these limitations by enabling:
 
-## Quickstart
+* Pay-per-query AI access
+* On-chain, verifiable micropayments
+* Fully autonomous agent-to-agent interactions
 
-To get started with Scaffold-ETH 2, follow the steps below:
+---
 
-1. Install dependencies if it was skipped in CLI:
+## ⚡ Why x402 Is the Core of Lumo AI
 
-```
-cd my-dapp-example
-yarn install
-```
+**x402** enables AI agents to pay each other directly using crypto micropayments.
 
-2. Run a local network in the first terminal:
+In Lumo AI:
 
-```
-yarn chain
-```
+* Every AI request is a **paid request**
+* Every AI response is **payment-gated**
+* Every transaction is **verifiable on-chain**
 
-This command starts a local Ethereum network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/hardhat/hardhat.config.ts`.
+There are:
 
-3. On a second terminal, deploy the test contract:
+* ❌ No API keys
+* ❌ No subscriptions
+* ❌ No trusted intermediaries
 
-```
-yarn deploy
-```
+Just **value-for-value intelligence exchange**.
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network. You can also customize the deploy script.
+---
 
-4. On a third terminal, start your NextJS app:
+## 🔁 How x402 Works in Lumo AI
 
-```
-yarn start
-```
+1. A user interacts with Lumo AI to request an investment strategy.
+2. Lumo’s requesting agent initiates an **x402 payment** (e.g. `0.001 USDC`).
+3. The payment is routed through an **x402 facilitator**.
+4. The Expert AI agent:
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+   * Verifies the payment
+   * Only responds **after confirmation**
+5. The strategy is returned and executed on-chain.
 
-Run smart contract test with `yarn hardhat:test`
+This ensures:
 
-- Edit your smart contracts in `packages/hardhat/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/hardhat/deploy`
+* No free queries
+* No unpaid AI responses
+* Fully trustless coordination between agents
 
+---
 
-## Documentation
+## 🤖 Autonomous AI-to-AI Payments
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+Lumo AI proves that:
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+* AI agents can own wallets
+* AI agents can enforce spending limits
+* AI agents can buy expertise on demand
 
-## Contributing to Scaffold-ETH 2
+This creates the foundation for **autonomous AI marketplaces**, where agents discover, price, and purchase intelligence dynamically using x402.
 
-We welcome contributions to Scaffold-ETH 2!
+---
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+## 💸 DeFAI + x402 in Action
+
+Lumo AI combines:
+
+* **x402** → for agent-to-agent micropayments
+* **DeFAI (Decentralized Finance + AI)** → for executing AI-generated investment strategies
+
+User goals (car, house, education) are translated into DeFi allocations across multiple protocols, while AI agents continuously coordinate and transact using x402—without user intervention after setup.
+
+---
+
+## 🏗️ High-Level Architecture
+
+* **UI**: Goal-based AI chat + dashboard
+* **Smart Wallets**: Automate payments and execution
+* **Next.js Backend**: Orchestrates agents and x402 flows
+* **Smart Contracts**: Execute DeFi strategies
+* **x402**: Payment rail between AI agents
+
+---
+
+## 🚀 Why This Matters
+
+Lumo AI is not just an investment app.
+
+It demonstrates:
+
+* Pay-per-use AI as a protocol
+* Intelligence as an on-chain commodity
+* AI agents forming real economic relationships
+* x402 as the missing payment layer for autonomous systems
+
+---
+
+This application was created as part of the
+**APP LAYER FTW Hackathon**.
