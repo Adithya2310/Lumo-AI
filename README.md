@@ -63,26 +63,27 @@ This ensures:
 
 ---
 
-## 🤖 Autonomous AI-to-AI Payments
-
-Lumo AI proves that:
-
-* AI agents can own wallets
-* AI agents can enforce spending limits
-* AI agents can buy expertise on demand
-
-This creates the foundation for **autonomous AI marketplaces**, where agents discover, price, and purchase intelligence dynamically using x402.
-
----
-
 ## 💸 DeFAI + x402 in Action
 
 Lumo AI combines:
 
-* **x402** → for agent-to-agent micropayments
+* **x402** → for real-time agent-to-agent micropayments
 * **DeFAI (Decentralized Finance + AI)** → for executing AI-generated investment strategies
 
-User goals (car, house, education) are translated into DeFi allocations across multiple protocols, while AI agents continuously coordinate and transact using x402—without user intervention after setup.
+User goals (car, house, education) are translated into allocations across multiple DeFi platforms.
+
+Users can choose:
+
+* ✅ **Monthly AI rebalancing**
+
+  * AI agents re-evaluate strategies every SIP cycle
+  * x402 payments occur monthly
+* ❌ **Fixed strategy execution**
+
+  * Same allocation reused every SIP
+  * No additional AI spend after setup
+
+All execution happens automatically after one-time approval.
 
 ---
 
