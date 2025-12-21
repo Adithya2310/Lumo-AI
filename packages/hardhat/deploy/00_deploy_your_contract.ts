@@ -3,12 +3,15 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { Contract } from "ethers";
 
 /**
- * Deploys a contract named "YourContract" using the deployer account and
- * constructor arguments set to the deployer address
+ * Deploys the Lumo AI contracts:
+ * 1. MockAave - Mock Aave lending protocol
+ * 2. MockCompound - Mock Compound lending protocol
+ * 3. MockUniswap - Mock Uniswap DEX protocol
+ * 4. LumoContract - Main contract for SIP management and fund allocation
  *
  * @param hre HardhatRuntimeEnvironment object.
  */
-const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deployLumoContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
 
@@ -22,23 +25,105 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  await deploy("YourContract", {
-    from: deployer,
-    // Contract constructor arguments
-    args: [deployer],
-    log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
-    autoMine: true,
-  });
+  // Check if we're on a live network
+  const isLiveNetwork = hre.network.name !== "hardhat" && hre.network.name !== "localhost";
 
-  // Get the deployed contract to interact with it after deploying.
-  const yourContract = await hre.ethers.getContract<Contract>("YourContract", deployer);
-  console.log("👋 Initial greeting:", await yourContract.greeting());
+  console.log("\n🚀 Deploying Lumo AI Contracts...");
+  console.log(`📍 Network: ${hre.network.name}`);
+  console.log(`👤 Deployer: ${deployer}\n`);
+
+  // Deploy Mock Protocols
+  console.log("📦 Deploying Mock Aave...");
+  const mockAave = await deploy("MockAave", {
+    from: deployer,
+    args: [],
+    log: true,
+    autoMine: true,
+    waitConfirmations: isLiveNetwork ? 2 : 1, // Wait for confirmations on live networks
+  });
+  console.log("✅ MockAave deployed at:", mockAave.address);
+
+  // Small delay between deployments on live networks to prevent nonce issues
+  if (isLiveNetwork) {
+    console.log("⏳ Waiting for network confirmation...");
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+
+  console.log("\n📦 Deploying Mock Compound...");
+  const mockCompound = await deploy("MockCompound", {
+    from: deployer,
+    args: [],
+    log: true,
+    autoMine: true,
+    waitConfirmations: isLiveNetwork ? 2 : 1,
+  });
+  console.log("✅ MockCompound deployed at:", mockCompound.address);
+
+  if (isLiveNetwork) {
+    console.log("⏳ Waiting for network confirmation...");
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+
+  console.log("\n📦 Deploying Mock Uniswap...");
+  const mockUniswap = await deploy("MockUniswap", {
+    from: deployer,
+    args: [],
+    log: true,
+    autoMine: true,
+    waitConfirmations: isLiveNetwork ? 2 : 1,
+  });
+  console.log("✅ MockUniswap deployed at:", mockUniswap.address);
+
+  if (isLiveNetwork) {
+    console.log("⏳ Waiting for network confirmation...");
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+
+  // Deploy Main Lumo Contract
+  console.log("\n📦 Deploying LumoContract...");
+  const lumoContract = await deploy("LumoContract", {
+    from: deployer,
+    args: [mockAave.address, mockCompound.address, mockUniswap.address],
+    log: true,
+    autoMine: true,
+    waitConfirmations: isLiveNetwork ? 2 : 1,
+  });
+  console.log("✅ LumoContract deployed at:", lumoContract.address);
+
+  // Get the deployed contracts to interact with them
+  const lumo = await hre.ethers.getContract<Contract>("LumoContract", deployer);
+  const aave = await hre.ethers.getContract<Contract>("MockAave", deployer);
+  const compound = await hre.ethers.getContract<Contract>("MockCompound", deployer);
+  const uniswap = await hre.ethers.getContract<Contract>("MockUniswap", deployer);
+
+  // Verify deployment
+  console.log("\n🔍 Verifying deployment...");
+  const aaveAddress = await lumo.aave();
+  const compoundAddress = await lumo.compound();
+  const uniswapAddress = await lumo.uniswap();
+  const owner = await lumo.owner();
+
+  console.log("✅ LumoContract configuration:");
+  console.log("   - Aave address:", aaveAddress);
+  console.log("   - Compound address:", compoundAddress);
+  console.log("   - Uniswap address:", uniswapAddress);
+  console.log("   - Owner:", owner);
+
+  // Verify mock protocols
+  const aaveTotalDeposits = await aave.totalDeposits();
+  const compoundTotalDeposits = await compound.totalDeposits();
+  const uniswapTotalDeposits = await uniswap.totalDeposits();
+
+  console.log("\n✅ Mock Protocols initialized:");
+  console.log("   - MockAave total deposits:", aaveTotalDeposits.toString());
+  console.log("   - MockCompound total deposits:", compoundTotalDeposits.toString());
+  console.log("   - MockUniswap total deposits:", uniswapTotalDeposits.toString());
+
+  console.log("\n🎉 All Lumo AI contracts deployed successfully!\n");
 };
 
-export default deployYourContract;
+export default deployLumoContracts;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
-// e.g. yarn deploy --tags YourContract
-deployYourContract.tags = ["YourContract"];
+// e.g. yarn deploy --tags LumoContract
+deployLumoContracts.tags = ["LumoContract", "MockAave", "MockCompound", "MockUniswap", "Lumo"];

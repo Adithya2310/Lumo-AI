@@ -1,0 +1,189 @@
+{
+  "address": "0x6f42dC74Cc3e75DcAE41aC8690738c86cD503923",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Deposited",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Withdrawn",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "deposits",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalDeposits",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "transactionHash": "0x617db2fc1e2be9e389af34991861e1ad3cbe70b9798ba49287e88735b511f6b9",
+  "receipt": {
+    "to": null,
+    "from": "0x66330597bD0a67B970CF32F003a70444CEB27c34",
+    "contractAddress": "0x6f42dC74Cc3e75DcAE41aC8690738c86cD503923",
+    "transactionIndex": 1,
+    "gasUsed": "273783",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x5ec25cbc3d934a3e533828c8b84c34d3bcba5ab93bbd2d8c354b9ef802ad21a7",
+    "transactionHash": "0x617db2fc1e2be9e389af34991861e1ad3cbe70b9798ba49287e88735b511f6b9",
+    "logs": [],
+    "blockNumber": 35278792,
+    "cumulativeGasUsed": "319941",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "c0391dd37ecfdfca2b1a1e7574a06aa2",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Deposited\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Withdrawn\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"deposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalDeposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/MockCompound.sol\":\"MockCompound\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/MockCompound.sol\":{\"content\":\"// SPDX-License-Identifier: MIT 0x6Bb3A3d3df74E6B28F3ebd7341AA6C3b70306aAB\\npragma solidity ^0.8.20;\\n\\ncontract MockCompound {\\n    mapping(address => uint256) public deposits;\\n    uint256 public totalDeposits;\\n\\n    event Deposited(address indexed user, uint256 amount);\\n    event Withdrawn(address indexed user, uint256 amount);\\n\\n    function deposit() external payable {\\n        require(msg.value > 0, \\\"Must deposit something\\\");\\n        deposits[msg.sender] += msg.value;\\n        totalDeposits += msg.value;\\n        emit Deposited(msg.sender, msg.value);\\n    }\\n\\n    function withdraw(uint256 amount) external {\\n        require(deposits[msg.sender] >= amount, \\\"Insufficient balance\\\");\\n        deposits[msg.sender] -= amount;\\n        totalDeposits -= amount;\\n        payable(msg.sender).transfer(amount);\\n        emit Withdrawn(msg.sender, amount);\\n    }\\n\\n    function balanceOf(address user) external view returns (uint256) {\\n        return deposits[user];\\n    }\\n\\n    receive() external payable {\\n        deposits[msg.sender] += msg.value;\\n        totalDeposits += msg.value;\\n        emit Deposited(msg.sender, msg.value);\\n    }\\n}\",\"keccak256\":\"0x195f9b3df3bb3c07ba4f78ef6f3e78a663abdc361c48f4476a22f1d55c621576\",\"license\":\"MIT 0x6Bb3A3d3df74E6B28F3ebd7341AA6C3b70306aAB\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506103fd806100206000396000f3fe60806040526004361061004e5760003560e01c80632e1a7d4d146100cc57806370a08231146100ee5780637d88209714610136578063d0e30db01461014c578063fc7e286d1461015457600080fd5b366100c7573360009081526020819052604081208054349290610072908490610352565b92505081905550346001600082825461008b9190610352565b909155505060405134815233907f2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c49060200160405180910390a2005b600080fd5b3480156100d857600080fd5b506100ec6100e736600461036b565b610181565b005b3480156100fa57600080fd5b50610124610109366004610384565b6001600160a01b031660009081526020819052604090205490565b60405190815260200160405180910390f35b34801561014257600080fd5b5061012460015481565b6100ec61027f565b34801561016057600080fd5b5061012461016f366004610384565b60006020819052908152604090205481565b336000908152602081905260409020548111156101dc5760405162461bcd60e51b8152602060048201526014602482015273496e73756666696369656e742062616c616e636560601b60448201526064015b60405180910390fd5b33600090815260208190526040812080548392906101fb9084906103b4565b92505081905550806001600082825461021491906103b4565b9091555050604051339082156108fc029083906000818181858888f19350505050158015610246573d6000803e3d6000fd5b5060405181815233907f7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d59060200160405180910390a250565b600034116102c85760405162461bcd60e51b81526020600482015260166024820152754d757374206465706f73697420736f6d657468696e6760501b60448201526064016101d3565b33600090815260208190526040812080543492906102e7908490610352565b9250508190555034600160008282546103009190610352565b909155505060405134815233907f2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c49060200160405180910390a2565b634e487b7160e01b600052601160045260246000fd5b808201808211156103655761036561033c565b92915050565b60006020828403121561037d57600080fd5b5035919050565b60006020828403121561039657600080fd5b81356001600160a01b03811681146103ad57600080fd5b9392505050565b818103818111156103655761036561033c56fea2646970667358221220455f6eb2cd36ab0ee9457ff30a694181b5bb2f8229b47245af9b0673d3d5642664736f6c63430008140033",
+  "deployedBytecode": "0x60806040526004361061004e5760003560e01c80632e1a7d4d146100cc57806370a08231146100ee5780637d88209714610136578063d0e30db01461014c578063fc7e286d1461015457600080fd5b366100c7573360009081526020819052604081208054349290610072908490610352565b92505081905550346001600082825461008b9190610352565b909155505060405134815233907f2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c49060200160405180910390a2005b600080fd5b3480156100d857600080fd5b506100ec6100e736600461036b565b610181565b005b3480156100fa57600080fd5b50610124610109366004610384565b6001600160a01b031660009081526020819052604090205490565b60405190815260200160405180910390f35b34801561014257600080fd5b5061012460015481565b6100ec61027f565b34801561016057600080fd5b5061012461016f366004610384565b60006020819052908152604090205481565b336000908152602081905260409020548111156101dc5760405162461bcd60e51b8152602060048201526014602482015273496e73756666696369656e742062616c616e636560601b60448201526064015b60405180910390fd5b33600090815260208190526040812080548392906101fb9084906103b4565b92505081905550806001600082825461021491906103b4565b9091555050604051339082156108fc029083906000818181858888f19350505050158015610246573d6000803e3d6000fd5b5060405181815233907f7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d59060200160405180910390a250565b600034116102c85760405162461bcd60e51b81526020600482015260166024820152754d757374206465706f73697420736f6d657468696e6760501b60448201526064016101d3565b33600090815260208190526040812080543492906102e7908490610352565b9250508190555034600160008282546103009190610352565b909155505060405134815233907f2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c49060200160405180910390a2565b634e487b7160e01b600052601160045260246000fd5b808201808211156103655761036561033c565b92915050565b60006020828403121561037d57600080fd5b5035919050565b60006020828403121561039657600080fd5b81356001600160a01b03811681146103ad57600080fd5b9392505050565b818103818111156103655761036561033c56fea2646970667358221220455f6eb2cd36ab0ee9457ff30a694181b5bb2f8229b47245af9b0673d3d5642664736f6c63430008140033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 567,
+        "contract": "contracts/MockCompound.sol:MockCompound",
+        "label": "deposits",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 569,
+        "contract": "contracts/MockCompound.sol:MockCompound",
+        "label": "totalDeposits",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

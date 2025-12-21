@@ -1,0 +1,45 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/LumoContract.sol": {
+      "content": "// SPDX-License-Identifier: MIT 0x82adEeeFE3f79D0d459878F36B44CD178080013d\npragma solidity ^0.8.20;\n\ncontract LumoContract {\n    struct Strategy {\n        uint8 aavePercent;\n        uint8 compoundPercent;\n        uint8 uniswapPercent;\n    }\n\n    struct SIPPlan {\n        address user;\n        uint256 totalAmount;\n        uint256 monthlyAmount;\n        uint256 duration;\n        Strategy strategy;\n        uint256 deposited;\n        uint256 createdAt;\n        bool active;\n    }\n\n    mapping(address => SIPPlan) public userPlans;\n    \n    address public aave;\n    address public compound;\n    address public uniswap;\n    address public owner;\n\n    event SIPCreated(address indexed user, uint256 totalAmount, uint256 duration);\n    event DepositExecuted(address indexed user, uint256 amount);\n    event FundsAllocated(address indexed protocol, uint256 amount);\n    event PlanCancelled(address indexed user, uint256 refundAmount);\n    event PlanPaused(address indexed user);\n    event PlanResumed(address indexed user);\n\n    constructor(address _aave, address _compound, address _uniswap) {\n        aave = _aave;\n        compound = _compound;\n        uniswap = _uniswap;\n        owner = msg.sender;\n    }\n\n    function createSIPPlan(\n        uint256 totalAmount,\n        uint256 monthlyAmount,\n        uint256 duration,\n        uint8 aavePercent,\n        uint8 compoundPercent,\n        uint8 uniswapPercent\n    ) external payable {\n        require(msg.value == totalAmount, \"Send correct ETH amount\");\n        require(monthlyAmount <= totalAmount, \"Monthly amount exceeds total\");\n        require(aavePercent + compoundPercent + uniswapPercent == 100, \"Percents must sum to 100\");\n        require(!userPlans[msg.sender].active, \"Plan already exists\");\n\n        Strategy memory strategy = Strategy({\n            aavePercent: aavePercent,\n            compoundPercent: compoundPercent,\n            uniswapPercent: uniswapPercent\n        });\n\n        userPlans[msg.sender] = SIPPlan({\n            user: msg.sender,\n            totalAmount: totalAmount,\n            monthlyAmount: monthlyAmount,\n            duration: duration,\n            strategy: strategy,\n            deposited: 0,\n            createdAt: block.timestamp,\n            active: true\n        });\n\n        emit SIPCreated(msg.sender, totalAmount, duration);\n\n        // Execute first deposit immediately\n        _executeDeposit(msg.sender, totalAmount);\n    }\n\n    function _executeDeposit(address user, uint256 amount) internal {\n        SIPPlan storage plan = userPlans[user];\n        require(plan.active, \"No active plan\");\n\n        // Calculate amounts for each protocol\n        uint256 aaveAmount = (amount * plan.strategy.aavePercent) / 100;\n        uint256 compoundAmount = (amount * plan.strategy.compoundPercent) / 100;\n        uint256 uniswapAmount = (amount * plan.strategy.uniswapPercent) / 100;\n\n        // Send to mock protocols\n        (bool success1, ) = aave.call{value: aaveAmount}(\"\");\n        require(success1, \"Aave deposit failed\");\n        emit FundsAllocated(aave, aaveAmount);\n\n        (bool success2, ) = compound.call{value: compoundAmount}(\"\");\n        require(success2, \"Compound deposit failed\");\n        emit FundsAllocated(compound, compoundAmount);\n\n        (bool success3, ) = uniswap.call{value: uniswapAmount}(\"\");\n        require(success3, \"Uniswap deposit failed\");\n        emit FundsAllocated(uniswap, uniswapAmount);\n\n        plan.deposited += amount;\n        emit DepositExecuted(user, amount);\n    }\n\n    function getPlan(address user) external view returns (SIPPlan memory) {\n        return userPlans[user];\n    }\n\n    function cancelPlan() external {\n        SIPPlan storage plan = userPlans[msg.sender];\n        require(plan.active, \"No active plan\");\n\n        plan.active = false;\n        \n        // No refund since all funds are already deposited to protocols\n        // Users would need to withdraw from individual protocols\n        emit PlanCancelled(msg.sender, 0);\n    }\n\n    function pausePlan() external {\n        SIPPlan storage plan = userPlans[msg.sender];\n        require(plan.active, \"No active plan\");\n        \n        plan.active = false;\n        emit PlanPaused(msg.sender);\n    }\n\n    function resumePlan() external {\n        SIPPlan storage plan = userPlans[msg.sender];\n        require(!plan.active, \"Plan already active\");\n        require(plan.user == msg.sender, \"No plan found\");\n        \n        plan.active = true;\n        emit PlanResumed(msg.sender);\n    }\n\n    receive() external payable {}\n}"
+    },
+    "contracts/MockAave.sol": {
+      "content": "// SPDX-License-Identifier: MIT 0x68839DB8a89434c2E16bD103BE0Aae6dddf24a90\npragma solidity ^0.8.20;\n\ncontract MockAave {\n    mapping(address => uint256) public deposits;\n    uint256 public totalDeposits;\n\n    event Deposited(address indexed user, uint256 amount);\n    event Withdrawn(address indexed user, uint256 amount);\n\n    function deposit() external payable {\n        require(msg.value > 0, \"Must deposit something\");\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n\n    function withdraw(uint256 amount) external {\n        require(deposits[msg.sender] >= amount, \"Insufficient balance\");\n        deposits[msg.sender] -= amount;\n        totalDeposits -= amount;\n        payable(msg.sender).transfer(amount);\n        emit Withdrawn(msg.sender, amount);\n    }\n\n    function balanceOf(address user) external view returns (uint256) {\n        return deposits[user];\n    }\n\n    receive() external payable {\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n}"
+    },
+    "contracts/MockCompound.sol": {
+      "content": "// SPDX-License-Identifier: MIT 0x6Bb3A3d3df74E6B28F3ebd7341AA6C3b70306aAB\npragma solidity ^0.8.20;\n\ncontract MockCompound {\n    mapping(address => uint256) public deposits;\n    uint256 public totalDeposits;\n\n    event Deposited(address indexed user, uint256 amount);\n    event Withdrawn(address indexed user, uint256 amount);\n\n    function deposit() external payable {\n        require(msg.value > 0, \"Must deposit something\");\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n\n    function withdraw(uint256 amount) external {\n        require(deposits[msg.sender] >= amount, \"Insufficient balance\");\n        deposits[msg.sender] -= amount;\n        totalDeposits -= amount;\n        payable(msg.sender).transfer(amount);\n        emit Withdrawn(msg.sender, amount);\n    }\n\n    function balanceOf(address user) external view returns (uint256) {\n        return deposits[user];\n    }\n\n    receive() external payable {\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n}"
+    },
+    "contracts/MockUniswap.sol": {
+      "content": "// SPDX-License-Identifier: MIT 0x7cDBf5C2657fF228FB494bc447b4BA8FFCD46293\npragma solidity ^0.8.20;\n\ncontract MockUniswap {\n    mapping(address => uint256) public deposits;\n    uint256 public totalDeposits;\n\n    event Deposited(address indexed user, uint256 amount);\n    event Withdrawn(address indexed user, uint256 amount);\n\n    function deposit() external payable {\n        require(msg.value > 0, \"Must deposit something\");\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n\n    function withdraw(uint256 amount) external {\n        require(deposits[msg.sender] >= amount, \"Insufficient balance\");\n        deposits[msg.sender] -= amount;\n        totalDeposits -= amount;\n        payable(msg.sender).transfer(amount);\n        emit Withdrawn(msg.sender, amount);\n    }\n\n    function balanceOf(address user) external view returns (uint256) {\n        return deposits[user];\n    }\n\n    receive() external payable {\n        deposits[msg.sender] += msg.value;\n        totalDeposits += msg.value;\n        emit Deposited(msg.sender, msg.value);\n    }\n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
