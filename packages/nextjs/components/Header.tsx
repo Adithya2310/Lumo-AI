@@ -7,9 +7,7 @@ import { usePathname } from "next/navigation";
 import { hardhat } from "viem/chains";
 import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
-import { CoinbaseConnectButton } from "~~/components/scaffold-eth/CoinbaseConnectButton";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
-import scaffoldConfig from "~~/scaffold.config";
 
 type HeaderMenuLink = {
   label: string;
@@ -61,7 +59,6 @@ export const HeaderMenuLinks = () => {
 export const Header = () => {
   const { targetNetwork } = useTargetNetwork();
   const isLocalNetwork = targetNetwork.id === hardhat.id;
-  const isCDPConfigured = Boolean(scaffoldConfig.cdpProjectId);
 
   const burgerMenuRef = useRef<HTMLDetailsElement>(null);
   useOutsideClick(burgerMenuRef, () => {
@@ -98,8 +95,7 @@ export const Header = () => {
         </ul>
       </div>
       <div className="navbar-end grow mr-4">
-        {/* Use CoinbaseConnectButton when CDP is configured, otherwise fall back to RainbowKit */}
-        {isCDPConfigured ? <CoinbaseConnectButton /> : <RainbowKitCustomConnectButton />}
+        <RainbowKitCustomConnectButton />
         {isLocalNetwork && <FaucetButton />}
       </div>
     </div>

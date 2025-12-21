@@ -6,15 +6,15 @@ import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Scaffold-ETH 2 App",
-  description: "Built with 🏗 Scaffold-ETH 2",
+  title: "Lumo AI | AI-Powered DeFi Investing",
+  description: "Automate long-term wealth building with intelligent DeFi strategies",
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
-    <html suppressHydrationWarning className={``}>
+    <html suppressHydrationWarning className={``} data-theme="lumo-dark">
       <body>
-        <ThemeProvider enableSystem>
+        <ThemeProvider enableSystem defaultTheme="dark">
           <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
         </ThemeProvider>
       </body>

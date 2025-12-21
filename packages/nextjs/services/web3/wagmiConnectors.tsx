@@ -1,36 +1,18 @@
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import {
-  baseAccount,
-  ledgerWallet,
-  metaMaskWallet,
-  rainbowWallet,
-  safeWallet,
-  walletConnectWallet,
-} from "@rainbow-me/rainbowkit/wallets";
-import { rainbowkitBurnerWallet } from "burner-connector";
-import * as chains from "viem/chains";
+import { baseAccount } from "@rainbow-me/rainbowkit/wallets";
 import scaffoldConfig from "~~/scaffold.config";
-
-const { onlyLocalBurnerWallet, targetNetworks } = scaffoldConfig;
-
-const wallets = [
-  metaMaskWallet,
-  walletConnectWallet,
-  ledgerWallet,
-  baseAccount,
-  rainbowWallet,
-  safeWallet,
-  ...(!targetNetworks.some(network => network.id !== (chains.hardhat as chains.Chain).id) || !onlyLocalBurnerWallet
-    ? [rainbowkitBurnerWallet]
-    : []),
-];
 
 /**
  * wagmi connectors for the wagmi context
+ *
+ * Using only baseAccount for Base Smart Wallet support which enables:
+ * - Passkey authentication
+ * - Spend permissions
+ * - Gasless transactions via paymaster
+ * - Batched transactions
  */
 export const wagmiConnectors = () => {
   // Only create connectors on client-side to avoid SSR issues
-  // TODO: update when https://github.com/rainbow-me/rainbowkit/issues/2476 is resolved
   if (typeof window === "undefined") {
     return [];
   }
@@ -38,13 +20,12 @@ export const wagmiConnectors = () => {
   return connectorsForWallets(
     [
       {
-        groupName: "Supported Wallets",
-        wallets,
+        groupName: "Connect Wallet",
+        wallets: [baseAccount],
       },
     ],
-
     {
-      appName: "scaffold-eth-2",
+      appName: "Lumo AI",
       projectId: scaffoldConfig.walletConnectProjectId,
     },
   );

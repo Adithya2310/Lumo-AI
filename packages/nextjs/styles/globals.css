@@ -1,18 +1,40 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant dark (&:where([data-theme=lumo-dark], [data-theme=lumo-dark] *));
 
 @theme {
   --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  
+  /* Lumo AI Color Palette */
+  --color-lumo-purple-50: #f5f3ff;
+  --color-lumo-purple-100: #ede9fe;
+  --color-lumo-purple-200: #ddd6fe;
+  --color-lumo-purple-300: #c4b5fd;
+  --color-lumo-purple-400: #a78bfa;
+  --color-lumo-purple-500: #8b5cf6;
+  --color-lumo-purple-600: #7c3aed;
+  --color-lumo-purple-700: #6d28d9;
+  --color-lumo-purple-800: #5b21b6;
+  --color-lumo-purple-900: #4c1d95;
+  
+  --color-lumo-indigo-500: #6366f1;
+  --color-lumo-indigo-600: #4f46e5;
+  
+  /* Dark backgrounds */
+  --color-lumo-dark-900: #0a0a0f;
+  --color-lumo-dark-800: #0f0f1a;
+  --color-lumo-dark-700: #1a1a2e;
+  --color-lumo-dark-600: #16213e;
+  --color-lumo-dark-500: #1f2937;
 }
 
 @plugin "daisyui" {
   themes:
     light,
-    dark --prefersdark;
+    dark --prefersdark,
+    lumo-dark;
 }
 
 @plugin "daisyui/theme" {
@@ -67,14 +89,34 @@
   --tt-bg: var(--color-primary);
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+/* Lumo AI Dark Theme - Professional Purple */
+@plugin "daisyui/theme" {
+  name: "lumo-dark";
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+  --color-primary: #8b5cf6;
+  --color-primary-content: #ffffff;
+  --color-secondary: #6d28d9;
+  --color-secondary-content: #ffffff;
+  --color-accent: #a78bfa;
+  --color-accent-content: #0f0f1a;
+  --color-neutral: #1a1a2e;
+  --color-neutral-content: #e5e7eb;
+  --color-base-100: #0f0f1a;
+  --color-base-200: #0a0a0f;
+  --color-base-300: #1a1a2e;
+  --color-base-content: #f3f4f6;
+  --color-info: #6366f1;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+
+  --tt-tailw: 6px;
+  --tt-bg: var(--color-primary);
+}
+
 @layer base {
   *,
   ::after,
@@ -106,6 +148,11 @@
   background: var(--color-base-200);
 }
 
+/* Lumo AI specific styles */
+[data-theme="lumo-dark"] {
+  background: linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 50%, #1a1a2e 100%);
+}
+
 .btn {
   @apply shadow-md;
 }
@@ -120,4 +167,35 @@
 
 .link:hover {
   opacity: 80%;
+}
+
+/* Lumo AI Button Styles */
+.btn-lumo-primary {
+  @apply bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-none;
+  @apply hover:from-purple-700 hover:to-indigo-700;
+  @apply shadow-lg shadow-purple-500/25;
+}
+
+.btn-lumo-secondary {
+  @apply bg-transparent border border-purple-500/30 text-purple-300;
+  @apply hover:bg-purple-500/10 hover:border-purple-400/50;
+}
+
+/* Glass morphism card */
+.card-lumo {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+}
+
+/* Gradient text */
+.text-gradient-lumo {
+  @apply bg-gradient-to-r from-purple-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent;
+}
+
+/* Glow effects */
+.glow-purple {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+}
+
+.glow-purple-sm {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
 }
