@@ -73,13 +73,50 @@ export const getServerWalletClient = () => {
   });
 };
 
-// Get the server wallet address
+// Get the server wallet address (for SIP execution)
 export const getServerWalletAddress = (): `0x${string}` | null => {
   const privateKey = process.env.SERVER_WALLET_PRIVATE_KEY;
   if (!privateKey) return null;
 
   try {
     // Ensure the private key starts with 0x
+    const formattedKey: `0x${string}` = (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`;
+    const account = privateKeyToAccount(formattedKey);
+    return account.address as `0x${string}`;
+  } catch {
+    return null;
+  }
+};
+
+// Phase 2: Create wallet client for agent transactions (x402 payments)
+// This is a separate wallet specifically for AI agent operations
+export const getAgentWalletClient = () => {
+  const privateKey = process.env.SERVER_AGENT_WALLET_PRIVATE_KEY;
+
+  if (!privateKey) {
+    throw new Error("SERVER_AGENT_WALLET_PRIVATE_KEY not configured");
+  }
+
+  const formattedKey = (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`;
+  const account = privateKeyToAccount(formattedKey);
+
+  return createWalletClient({
+    account,
+    chain: baseSepolia,
+    transport: http(
+      process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+        ? `https://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+        : "https://sepolia.base.org",
+    ),
+  });
+};
+
+// Phase 2: Get the agent wallet address (for x402 AI agent payments)
+export const getAgentWalletAddress = (): `0x${string}` | null => {
+  const privateKey = process.env.SERVER_AGENT_WALLET_PRIVATE_KEY;
+  if (!privateKey) return null;
+
+  try {
     const formattedKey: `0x${string}` = (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`;
     const account = privateKeyToAccount(formattedKey);
     return account.address as `0x${string}`;

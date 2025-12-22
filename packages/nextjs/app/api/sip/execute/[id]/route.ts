@@ -147,9 +147,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const userAddress = plan.user_address as string;
 
-    // Fetch the spend permission from database
+    // Fetch the SIP spend permission from database (Phase 2: specifically query for 'sip' type)
     const permissionResult = await turso.execute({
-      sql: `SELECT * FROM spend_permissions WHERE plan_id = ? AND user_address = ? AND revoked = 0`,
+      sql: `SELECT * FROM spend_permissions WHERE plan_id = ? AND user_address = ? AND revoked = 0 AND (permission_type = 'sip' OR permission_type IS NULL)`,
       args: [planId, userAddress],
     });
 

@@ -2,31 +2,50 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChatMessage, MessageType } from "./ChatMessage";
+import { useAccount } from "wagmi";
+import { CreateSIPModal } from "~~/components/modals/CreateSIPModal";
+import {
+  PermissionType,
+  SpendPermissionModal,
+  serializeSpendPermission,
+} from "~~/components/modals/SpendPermissionModal";
 
-interface SIPPlan {
-  goal: string;
-  monthlyAmount: string;
-  riskLevel: "low" | "medium" | "high";
-  aiSpendLimit: string;
-  rebalancing: boolean;
-  strategy: {
-    aave: number;
-    compound: number;
-    uniswap: number;
-  };
+// Stored permission data for database
+interface StoredPermission {
+  spender: string;
+  token: string;
+  allowance: string;
+  period: number;
+  start: number;
+  end: number;
+  salt: string;
+  signature: string;
+  type: PermissionType;
 }
 
 interface ChatContainerProps {
-  onPlanGenerated: (plan: SIPPlan) => void;
+  onPlanComplete: (planId: number) => void;
 }
 
-type ConversationStep = "greeting" | "goal" | "amount" | "risk" | "ai_limit" | "complete";
+type ConversationStep =
+  | "greeting"
+  | "goal"
+  | "amount"
+  | "sip_permission"
+  | "sip_permission_confirmed"
+  | "risk"
+  | "ai_limit"
+  | "agent_permission"
+  | "agent_permission_confirmed"
+  | "creating_sip"
+  | "complete";
 
 interface Message {
   id: string;
   type: MessageType;
   content: string;
   options?: string[];
+  isAction?: boolean; // For action prompts like permission requests
 }
 
 // Generate strategy based on risk level
@@ -43,12 +62,25 @@ const generateStrategy = (riskLevel: "low" | "medium" | "high") => {
   }
 };
 
-export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
+export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
+  const { address } = useAccount();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [step, setStep] = useState<ConversationStep>("greeting");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Modal states
+  const [showSIPPermissionModal, setShowSIPPermissionModal] = useState(false);
+  const [showAgentPermissionModal, setShowAgentPermissionModal] = useState(false);
+  const [showCreateSIPModal, setShowCreateSIPModal] = useState(false);
+
+  // Stored permissions
+  const [sipPermission, setSipPermission] = useState<StoredPermission | null>(null);
+  const [agentPermission, setAgentPermission] = useState<StoredPermission | null>(null);
+
+  // Created plan ID from database
+  const [createdPlanId, setCreatedPlanId] = useState<number | null>(null);
 
   // Collected data
   const [planData, setPlanData] = useState({
@@ -56,6 +88,7 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
     monthlyAmount: "",
     riskLevel: "" as "low" | "medium" | "high",
     aiSpendLimit: "",
+    rebalancing: false,
   });
 
   // Scroll to bottom when messages change
@@ -74,7 +107,7 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
     }, 500);
   }, []);
 
-  const addAIMessage = (content: string, options?: string[]) => {
+  const addAIMessage = (content: string, options?: string[], isAction?: boolean) => {
     setIsTyping(true);
     setTimeout(() => {
       setMessages(prev => [
@@ -84,6 +117,7 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
           type: "ai" as MessageType,
           content,
           options,
+          isAction,
         },
       ]);
       setIsTyping(false);
@@ -97,6 +131,17 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
         id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         type: "user" as MessageType,
         content,
+      },
+    ]);
+  };
+
+  const addSystemMessage = (content: string) => {
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        type: "ai" as MessageType,
+        content: `✅ ${content}`,
       },
     ]);
   };
@@ -126,13 +171,26 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
       case "amount":
         const amount = userInput.replace(/[^0-9.]/g, "");
         setPlanData(prev => ({ ...prev, monthlyAmount: amount }));
-        setStep("risk");
+        setStep("sip_permission");
         setTimeout(() => {
           addAIMessage(
-            `Perfect! ${userInput} per month is a solid commitment. 💪\n\nWhat's your risk tolerance? This helps me allocate your funds across different DeFi protocols.`,
-            ["Low - Stable returns", "Medium - Balanced growth", "High - Maximum growth"],
+            `Perfect! ${userInput} per month is a solid commitment. 💪\n\n` +
+              `To enable automated monthly investments, I need you to grant a **SIP Spend Permission**.\n\n` +
+              `This allows Lumo to automatically invest up to ${amount} ETH per period on your behalf.`,
+            ["Grant SIP Permission"],
+            true,
           );
         }, 500);
+        break;
+
+      case "sip_permission":
+        // User clicked "Grant SIP Permission"
+        setShowSIPPermissionModal(true);
+        break;
+
+      case "sip_permission_confirmed":
+        // After SIP permission is confirmed, ask about risk
+        // This state is set by the modal callback
         break;
 
       case "risk":
@@ -141,7 +199,6 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
         else if (userInput.toLowerCase().includes("high")) riskLevel = "high";
 
         setPlanData(prev => ({ ...prev, riskLevel }));
-        setStep("ai_limit");
 
         const strategy = generateStrategy(riskLevel);
         setTimeout(() => {
@@ -154,109 +211,335 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
             ["0.001 ETH", "0.005 ETH", "0.01 ETH", "No AI rebalancing"],
           );
         }, 500);
+        setStep("ai_limit");
         break;
 
       case "ai_limit":
         const hasAI = !userInput.toLowerCase().includes("no");
         const aiLimit = hasAI ? userInput.replace(/[^0-9.]/g, "") : "0";
 
-        setPlanData(prev => ({ ...prev, aiSpendLimit: aiLimit }));
-        setStep("complete");
+        setPlanData(prev => ({ ...prev, aiSpendLimit: aiLimit, rebalancing: hasAI }));
 
-        // Generate final plan
-        const finalPlan: SIPPlan = {
-          goal: planData.goal,
-          monthlyAmount: planData.monthlyAmount,
-          riskLevel: planData.riskLevel,
-          aiSpendLimit: aiLimit,
-          rebalancing: hasAI,
-          strategy: generateStrategy(planData.riskLevel),
-        };
-
-        setTimeout(() => {
-          addAIMessage(
-            `🎉 Your investment plan is ready!\n\n` +
-              `**Summary:**\n` +
-              `• Goal: ${planData.goal}\n` +
-              `• Monthly SIP: ${planData.monthlyAmount} ETH\n` +
-              `• Risk Level: ${planData.riskLevel.charAt(0).toUpperCase() + planData.riskLevel.slice(1)}\n` +
-              `• AI Rebalancing: ${hasAI ? "Enabled" : "Disabled"}\n\n` +
-              `Click "Review & Confirm" to proceed with setting up your automated investment plan.`,
-          );
-
-          // Trigger confirmation after a delay
+        if (hasAI && aiLimit !== "0") {
+          // If user wants AI rebalancing, request agent permission
+          setStep("agent_permission");
           setTimeout(() => {
-            onPlanGenerated(finalPlan);
-          }, 1500);
-        }, 500);
+            addAIMessage(
+              `Great! You've allocated ${aiLimit} ETH for AI agent services.\n\n` +
+                `To enable AI-powered strategy optimization, I need you to grant an **Agent Spend Permission**.\n\n` +
+                `This allows the Lumo AI Agent to spend up to ${aiLimit} ETH per period for rebalancing and optimization.`,
+              ["Grant Agent Permission"],
+              true,
+            );
+          }, 500);
+        } else {
+          // Skip agent permission, proceed to creating SIP
+          setStep("creating_sip");
+          createSIPPlan(false);
+        }
+        break;
+
+      case "agent_permission":
+        // User clicked "Grant Agent Permission"
+        setShowAgentPermissionModal(true);
+        break;
+
+      default:
+        // Handle any unexpected input
         break;
     }
   };
 
+  // Handle SIP permission granted
+  const handleSIPPermissionGranted = (permission: any, signature: string) => {
+    setShowSIPPermissionModal(false);
+
+    const storedPermission = serializeSpendPermission(permission, signature);
+    setSipPermission({
+      ...storedPermission,
+      type: "sip",
+    });
+
+    addSystemMessage(`SIP spend permission granted for ${planData.monthlyAmount} ETH per period.`);
+
+    setStep("sip_permission_confirmed");
+    setTimeout(() => {
+      setStep("risk");
+      addAIMessage(
+        `Excellent! Now let's talk about risk.\n\nWhat's your risk tolerance? This helps me allocate your funds across different DeFi protocols.`,
+        ["Low - Stable returns", "Medium - Balanced growth", "High - Maximum growth"],
+      );
+    }, 1000);
+  };
+
+  // Handle Agent permission granted
+  const handleAgentPermissionGranted = (permission: any, signature: string) => {
+    setShowAgentPermissionModal(false);
+
+    const storedPermission = serializeSpendPermission(permission, signature);
+    setAgentPermission({
+      ...storedPermission,
+      type: "agent",
+    });
+
+    addSystemMessage(`AI Agent spend permission granted for ${planData.aiSpendLimit} ETH per period.`);
+
+    setStep("agent_permission_confirmed");
+    setTimeout(() => {
+      setStep("creating_sip");
+      createSIPPlan(true);
+    }, 1000);
+  };
+
+  // Create SIP plan (stored off-chain for coordination)
+  const createSIPPlan = async (hasAgentPermission: boolean) => {
+    if (!address) {
+      addAIMessage("❌ Error: Wallet not connected. Please connect your wallet and try again.");
+      return;
+    }
+
+    // Silently prepare the plan - no need to show backend details
+
+    try {
+      const strategy = generateStrategy(planData.riskLevel);
+
+      // Prepare permissions array
+      const permissions: any[] = [];
+
+      if (sipPermission) {
+        permissions.push({
+          ...sipPermission,
+          permission_type: "sip",
+        });
+      }
+
+      if (hasAgentPermission && agentPermission) {
+        permissions.push({
+          ...agentPermission,
+          permission_type: "agent",
+        });
+      }
+
+      // Create SIP plan in database
+      const response = await fetch("/api/sip/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userAddress: address,
+          plan: {
+            goal: planData.goal,
+            monthlyAmount: planData.monthlyAmount,
+            riskLevel: planData.riskLevel,
+            strategy,
+            rebalancing: planData.rebalancing,
+            aiSpendLimit: planData.aiSpendLimit,
+          },
+          spendPermission: sipPermission
+            ? {
+                ...sipPermission,
+                permission_type: "sip",
+              }
+            : null,
+          agentSpendPermission:
+            hasAgentPermission && agentPermission
+              ? {
+                  ...agentPermission,
+                  permission_type: "agent",
+                }
+              : null,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to save SIP plan");
+      }
+
+      const data = await response.json();
+      const planId = data.plan?.id;
+
+      if (!planId) {
+        throw new Error("Failed to prepare your SIP plan");
+      }
+
+      setCreatedPlanId(planId);
+
+      // Plan is ready - no need to show backend status
+
+      // Now prompt for on-chain creation
+      setTimeout(() => {
+        addAIMessage(
+          `🎉 Your plan is ready!\n\n` +
+            `**Summary:**\n` +
+            `• Goal: ${planData.goal}\n` +
+            `• Monthly SIP: ${planData.monthlyAmount} ETH\n` +
+            `• Risk Level: ${planData.riskLevel.charAt(0).toUpperCase() + planData.riskLevel.slice(1)}\n` +
+            `• AI Rebalancing: ${planData.rebalancing ? "Enabled" : "Disabled"}\n\n` +
+            `Now let's register your SIP plan on the blockchain to make it official!`,
+          ["Create SIP On-Chain"],
+          true,
+        );
+        setStep("complete");
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error creating SIP plan:", error);
+      addAIMessage(`❌ Something went wrong while preparing your plan. Please try again.`);
+    }
+  };
+
+  // Handle create SIP on-chain click
+  const handleCreateSIPClick = () => {
+    if (createdPlanId) {
+      setShowCreateSIPModal(true);
+    }
+  };
+
+  // Handle SIP created on-chain
+  const handleSIPCreated = (txHash: string) => {
+    setShowCreateSIPModal(false);
+
+    // Show transaction confirmation in a web3-native way
+    addSystemMessage(`Transaction confirmed: ${txHash.slice(0, 6)}...${txHash.slice(-4)}`);
+
+    setTimeout(() => {
+      addAIMessage(
+        `🚀 **Congratulations!** Your SIP plan is now fully active!\n\n` +
+          `Your automated investments will begin according to your schedule. ` +
+          `You can monitor your portfolio and manage your plans from the dashboard.\n\n` +
+          `Redirecting to your dashboard...`,
+      );
+
+      // Trigger completion after a delay
+      setTimeout(() => {
+        if (createdPlanId) {
+          onPlanComplete(createdPlanId);
+        }
+      }, 2000);
+    }, 500);
+  };
+
   const handleOptionClick = (option: string) => {
+    // Handle action buttons
+    if (option === "Grant SIP Permission" && step === "sip_permission") {
+      setShowSIPPermissionModal(true);
+      return;
+    }
+    if (option === "Grant Agent Permission" && step === "agent_permission") {
+      setShowAgentPermissionModal(true);
+      return;
+    }
+    if (option === "Create SIP On-Chain" && step === "complete") {
+      handleCreateSIPClick();
+      return;
+    }
+
     handleSend(option);
   };
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-        {messages.map(message => (
-          <ChatMessage
-            key={message.id}
-            type={message.type}
-            content={message.content}
-            options={message.options}
-            onOptionClick={handleOptionClick}
-          />
-        ))}
+  // Check if input should be disabled
+  const isInputDisabled = () => {
+    return step === "sip_permission" || step === "agent_permission" || step === "creating_sip" || step === "complete";
+  };
 
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex items-center gap-3 p-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
-              <span className="text-lg">✨</span>
+  return (
+    <>
+      <div className="flex flex-col h-[calc(100vh-8rem)]">
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+          {messages.map(message => (
+            <ChatMessage
+              key={message.id}
+              type={message.type}
+              content={message.content}
+              options={message.options}
+              onOptionClick={handleOptionClick}
+            />
+          ))}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex items-center gap-3 p-4">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
+                <span className="text-lg">✨</span>
+              </div>
+              <div className="flex gap-1">
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span
+                  className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <span
+                  className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
+              </div>
             </div>
-            <div className="flex gap-1">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        {!isInputDisabled() && (
+          <div className="border-t border-white/5 pt-4">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyPress={e => e.key === "Enter" && handleSend()}
+                placeholder="Type your message..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+              />
+              <button
+                onClick={() => handleSend()}
+                disabled={!input.trim()}
+                className="btn btn-lumo-primary px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      {step !== "complete" && (
-        <div className="border-t border-white/5 pt-4">
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyPress={e => e.key === "Enter" && handleSend()}
-              placeholder="Type your message..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
-            />
-            <button
-              onClick={() => handleSend()}
-              disabled={!input.trim()}
-              className="btn btn-lumo-primary px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+      {/* SIP Permission Modal */}
+      {showSIPPermissionModal && (
+        <SpendPermissionModal
+          type="sip"
+          amount={planData.monthlyAmount}
+          onSuccess={handleSIPPermissionGranted}
+          onCancel={() => setShowSIPPermissionModal(false)}
+        />
       )}
-    </div>
+
+      {/* Agent Permission Modal */}
+      {showAgentPermissionModal && (
+        <SpendPermissionModal
+          type="agent"
+          amount={planData.aiSpendLimit}
+          onSuccess={handleAgentPermissionGranted}
+          onCancel={() => setShowAgentPermissionModal(false)}
+        />
+      )}
+
+      {/* Create SIP Modal */}
+      {showCreateSIPModal && createdPlanId && (
+        <CreateSIPModal
+          planId={createdPlanId}
+          monthlyAmount={planData.monthlyAmount}
+          strategy={generateStrategy(planData.riskLevel)}
+          onSuccess={handleSIPCreated}
+          onCancel={() => setShowCreateSIPModal(false)}
+        />
+      )}
+    </>
   );
 };

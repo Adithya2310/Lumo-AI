@@ -44,6 +44,7 @@ export async function initializeDatabase() {
         `);
 
     // Create spend permissions table (linked to specific SIP plans)
+    // Phase 2: Added permission_type to distinguish between 'sip' and 'agent' permissions
     await turso.execute(`
             CREATE TABLE IF NOT EXISTS spend_permissions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,10 +58,16 @@ export async function initializeDatabase() {
                 end_time INTEGER NOT NULL,
                 salt TEXT NOT NULL,
                 signature TEXT NOT NULL,
+                permission_type TEXT NOT NULL DEFAULT 'sip' CHECK(permission_type IN ('sip', 'agent')),
                 revoked INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (plan_id) REFERENCES sip_plans(id)
             )
+        `);
+
+    // Create index on permission_type for faster lookups
+    await turso.execute(`
+            CREATE INDEX IF NOT EXISTS idx_spend_permissions_type ON spend_permissions(permission_type)
         `);
 
     // Create executions history table (linked to specific SIP plans)

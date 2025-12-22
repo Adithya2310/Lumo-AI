@@ -76,15 +76,16 @@ export async function POST(request: NextRequest) {
 
       planId = Number(result.lastInsertRowid);
 
-      // Store spend permission if provided
+      // Store SIP spend permission if provided
       if (spendPermission && spendPermission.signature && planId) {
+        const permissionType = spendPermission.permission_type || "sip";
         await turso.execute({
           sql: `
                         INSERT INTO spend_permissions (
                             plan_id, user_address, spender_address, token, allowance,
                             period, start_time, end_time, salt, signature,
-                            revoked, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+                            permission_type, revoked, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
                     `,
           args: [
             planId,
@@ -97,9 +98,40 @@ export async function POST(request: NextRequest) {
             spendPermission.end,
             spendPermission.salt,
             spendPermission.signature,
+            permissionType,
             now,
           ],
         });
+        console.log(`SIP spend permission stored for plan #${planId}`);
+      }
+
+      // Store Agent spend permission if provided (Phase 2 separate agent permissions)
+      const agentSpendPermission = body.agentSpendPermission;
+      if (agentSpendPermission && agentSpendPermission.signature && planId) {
+        await turso.execute({
+          sql: `
+                        INSERT INTO spend_permissions (
+                            plan_id, user_address, spender_address, token, allowance,
+                            period, start_time, end_time, salt, signature,
+                            permission_type, revoked, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+                    `,
+          args: [
+            planId,
+            userAddress.toLowerCase(),
+            agentSpendPermission.spender,
+            agentSpendPermission.token,
+            agentSpendPermission.allowance,
+            agentSpendPermission.period,
+            agentSpendPermission.start,
+            agentSpendPermission.end,
+            agentSpendPermission.salt,
+            agentSpendPermission.signature,
+            "agent",
+            now,
+          ],
+        });
+        console.log(`Agent spend permission stored for plan #${planId}`);
       }
 
       console.log(`SIP Plan #${planId} saved to database for ${userAddress}`);

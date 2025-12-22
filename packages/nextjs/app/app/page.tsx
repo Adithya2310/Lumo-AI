@@ -5,22 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccount, useDisconnect } from "wagmi";
 import { ChatContainer } from "~~/components/chat/ChatContainer";
-import { ConfirmationModal } from "~~/components/modals/ConfirmationModal";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
-
-// SIP Plan interface
-interface SIPPlan {
-  goal: string;
-  monthlyAmount: string;
-  riskLevel: "low" | "medium" | "high";
-  aiSpendLimit: string;
-  rebalancing: boolean;
-  strategy: {
-    aave: number;
-    compound: number;
-    uniswap: number;
-  };
-}
 
 export default function AppPage() {
   const router = useRouter();
@@ -30,30 +15,38 @@ export default function AppPage() {
   const { disconnect } = useDisconnect();
 
   const [mounted, setMounted] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [sipPlan, setSipPlan] = useState<SIPPlan | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Handle when chat completes and generates a plan
-  const handlePlanGenerated = (plan: SIPPlan) => {
-    setSipPlan(plan);
-    setShowConfirmation(true);
-  };
+  // Handle when chat completes the entire flow including permissions and contract creation
+  const handlePlanComplete = (planId: number) => {
+    console.log(`SIP Plan #${planId} completed successfully!`);
+    // Schedule automatic SIP execution after 60 seconds to test spend permission
+    console.log(`Scheduling automatic SIP execution for plan #${planId} in 60 seconds...`);
+    setTimeout(async () => {
+      try {
+        console.log(`Triggering automatic SIP execution for plan #${planId}...`);
+        const executeResponse = await fetch(`/api/sip/execute/${planId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
 
-  // Handle confirmation
-  const handleConfirm = () => {
-    setShowConfirmation(false);
+        const executeData = await executeResponse.json();
+
+        if (executeResponse.ok) {
+          console.log("✅ SIP execution successful:", executeData);
+        } else {
+          console.error("❌ SIP execution failed:", executeData);
+        }
+      } catch (execError) {
+        console.error("❌ Error executing SIP:", execError);
+      }
+    }, 60000); // 60 seconds
+
     router.push("/dashboard");
-  };
-
-  // Handle cancel
-  const handleCancel = () => {
-    setShowConfirmation(false);
-    setSipPlan(null);
   };
 
   // Loading state
@@ -206,14 +199,9 @@ export default function AppPage() {
       {/* Main Content */}
       <main className="pt-24 pb-8 px-6 min-h-screen">
         <div className="max-w-3xl mx-auto">
-          <ChatContainer onPlanGenerated={handlePlanGenerated} />
+          <ChatContainer onPlanComplete={handlePlanComplete} />
         </div>
       </main>
-
-      {/* Confirmation Modal */}
-      {showConfirmation && sipPlan && (
-        <ConfirmationModal plan={sipPlan} onConfirm={handleConfirm} onCancel={handleCancel} />
-      )}
     </div>
   );
 }
