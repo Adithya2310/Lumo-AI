@@ -80,7 +80,7 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
       setMessages(prev => [
         ...prev,
         {
-          id: Date.now().toString(),
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           type: "ai" as MessageType,
           content,
           options,
@@ -94,7 +94,7 @@ export const ChatContainer = ({ onPlanGenerated }: ChatContainerProps) => {
     setMessages(prev => [
       ...prev,
       {
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         type: "user" as MessageType,
         content,
       },

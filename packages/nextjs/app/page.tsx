@@ -17,16 +17,16 @@ const Home: NextPage = () => {
 
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-purple-500/10 border border-purple-500/20">
+          {/* <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-purple-500/10 border border-purple-500/20">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-sm text-purple-300">Powered by Coinbase CDP</span>
-          </div>
+          </div> */}
 
           {/* Main Headline */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-white">AI-Powered</span>
-            <br />
-            <span className="text-gradient-lumo">DeFi Investing</span>
+            {/* <span className="text-white">AI-Powered DeFi Investing</span> */}
+            {/* <br /> */}
+            <span className="text-gradient-lumo">Lumo AI</span>
           </h1>
 
           {/* Subheadline */}

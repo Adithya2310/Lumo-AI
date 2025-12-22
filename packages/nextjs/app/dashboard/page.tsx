@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAccount, useDisconnect } from "wagmi";
+import { formatEther } from "viem";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useCopyToClipboard } from "~~/hooks/scaffold-eth";
 
 interface SIPPlan {
   id: number;
@@ -24,6 +26,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+  const { data: balanceData, isLoading: balanceLoading } = useBalance({ address });
+  const { copyToClipboard, isCopiedToClipboard: isCopied } = useCopyToClipboard();
 
   const [mounted, setMounted] = useState(false);
   const [plans, setPlans] = useState<SIPPlan[]>([]);
@@ -219,6 +223,68 @@ export default function DashboardPage() {
 
       <main className="px-6 py-8">
         <div className="max-w-6xl mx-auto">
+          {/* Profile Section */}
+          <div className="card-lumo p-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/25">
+                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white mb-1">Your Wallet</h2>
+                  <div className="flex items-center gap-2">
+                    <code className="text-sm text-gray-400 font-mono bg-white/5 px-3 py-1.5 rounded-lg">{address}</code>
+                    <button
+                      onClick={() => copyToClipboard(address || "")}
+                      className={`p-2 rounded-lg transition-all duration-200 ${
+                        isCopied
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                      title={isCopied ? "Copied!" : "Copy address"}
+                    >
+                      {isCopied ? (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-sm text-gray-400 mb-1">ETH Balance</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">💎</span>
+                  {balanceLoading ? (
+                    <div className="loading loading-spinner loading-sm text-purple-500" />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">
+                      {balanceData ? parseFloat(formatEther(balanceData.value)).toFixed(4) : "0.0000"} ETH
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Page Title */}
           <div className="flex items-center justify-between mb-8">
             <div>
