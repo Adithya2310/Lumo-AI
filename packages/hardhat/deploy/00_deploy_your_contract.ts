@@ -79,11 +79,16 @@ const deployLumoContracts: DeployFunction = async function (hre: HardhatRuntimeE
     await new Promise(resolve => setTimeout(resolve, 5000));
   }
 
+  // SpendPermissionManager address on Base Sepolia
+  // See: https://docs.base.org/identity/smart-wallet/spend-permissions
+  const SPEND_PERMISSION_MANAGER_ADDRESS = "0xf85210B21cC50302F477BA56686d2019dC9b67Ad";
+
   // Deploy Main Lumo Contract
   console.log("\n📦 Deploying LumoContract...");
+  console.log(`   Using SpendPermissionManager: ${SPEND_PERMISSION_MANAGER_ADDRESS}`);
   const lumoContract = await deploy("LumoContract", {
     from: deployer,
-    args: [mockAave.address, mockCompound.address, mockUniswap.address],
+    args: [mockAave.address, mockCompound.address, mockUniswap.address, SPEND_PERMISSION_MANAGER_ADDRESS],
     log: true,
     autoMine: true,
     waitConfirmations: isLiveNetwork ? 2 : 1,

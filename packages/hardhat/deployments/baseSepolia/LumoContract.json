@@ -1,5 +1,5 @@
 {
-  "address": "0x85f0De2CC7b9307F3866b4bb3cCd3D0204f3Ac74",
+  "address": "0x24f204aF1D1e4e4F47c2E632942936110D0A4333",
   "abi": [
     {
       "inputs": [
@@ -17,6 +17,11 @@
           "internalType": "address",
           "name": "_uniswap",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_spendPermissionManager",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
@@ -30,6 +35,12 @@
           "internalType": "address",
           "name": "user",
           "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
         },
         {
           "indexed": false,
@@ -70,9 +81,9 @@
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "uint256",
-          "name": "refundAmount",
+          "name": "planId",
           "type": "uint256"
         }
       ],
@@ -87,6 +98,12 @@
           "internalType": "address",
           "name": "user",
           "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
         }
       ],
       "name": "PlanPaused",
@@ -100,6 +117,12 @@
           "internalType": "address",
           "name": "user",
           "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
         }
       ],
       "name": "PlanResumed",
@@ -115,15 +138,15 @@
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "uint256",
-          "name": "totalAmount",
+          "name": "planId",
           "type": "uint256"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "duration",
+          "name": "monthlyAmount",
           "type": "uint256"
         }
       ],
@@ -144,7 +167,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        }
+      ],
       "name": "cancelPlan",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -167,17 +196,12 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "totalAmount",
+          "name": "planId",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
           "name": "monthlyAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "duration",
           "type": "uint256"
         },
         {
@@ -198,6 +222,19 @@
       ],
       "name": "createSIPPlan",
       "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        }
+      ],
+      "name": "depositDirect",
+      "outputs": [],
       "stateMutability": "payable",
       "type": "function"
     },
@@ -207,6 +244,91 @@
           "internalType": "address",
           "name": "user",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "allowance",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint48",
+              "name": "period",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "start",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "end",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "extraData",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ISpendPermissionManager.SpendPermission",
+          "name": "spendPermission",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint160",
+          "name": "amount",
+          "type": "uint160"
+        }
+      ],
+      "name": "executeDeposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
         }
       ],
       "name": "getPlan",
@@ -220,17 +342,12 @@
             },
             {
               "internalType": "uint256",
-              "name": "totalAmount",
+              "name": "planId",
               "type": "uint256"
             },
             {
               "internalType": "uint256",
               "name": "monthlyAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "duration",
               "type": "uint256"
             },
             {
@@ -257,7 +374,12 @@
             },
             {
               "internalType": "uint256",
-              "name": "deposited",
+              "name": "totalDeposited",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastDepositTime",
               "type": "uint256"
             },
             {
@@ -280,6 +402,25 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserPlanIds",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "owner",
       "outputs": [
@@ -293,15 +434,66 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        }
+      ],
       "name": "pausePlan",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        }
+      ],
       "name": "resumePlan",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_spendPermissionManager",
+          "type": "address"
+        }
+      ],
+      "name": "setSpendPermissionManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spendPermissionManager",
+      "outputs": [
+        {
+          "internalType": "contract ISpendPermissionManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -325,6 +517,35 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "userPlanIds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "name": "userPlans",
@@ -336,17 +557,12 @@
         },
         {
           "internalType": "uint256",
-          "name": "totalAmount",
+          "name": "planId",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
           "name": "monthlyAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "duration",
           "type": "uint256"
         },
         {
@@ -373,7 +589,12 @@
         },
         {
           "internalType": "uint256",
-          "name": "deposited",
+          "name": "totalDeposited",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastDepositTime",
           "type": "uint256"
         },
         {
@@ -395,83 +616,161 @@
       "type": "receive"
     }
   ],
-  "transactionHash": "0xf22b353ee36406b46d0da0e49ecf5c16c1e9fb0cc5f170ff783a903e50dbac32",
+  "transactionHash": "0x9e3c6ce87294135c61a9122c968dcf061f135b01d18023bc66f4266557c93b29",
   "receipt": {
     "to": null,
     "from": "0x66330597bD0a67B970CF32F003a70444CEB27c34",
-    "contractAddress": "0x85f0De2CC7b9307F3866b4bb3cCd3D0204f3Ac74",
-    "transactionIndex": 1,
-    "gasUsed": "923509",
+    "contractAddress": "0x24f204aF1D1e4e4F47c2E632942936110D0A4333",
+    "transactionIndex": 9,
+    "gasUsed": "1601267",
     "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "blockHash": "0x7b1c5fad0f355b6baee3973ac36ac73c75291f24827cd4fd407160a0cc46db18",
-    "transactionHash": "0xf22b353ee36406b46d0da0e49ecf5c16c1e9fb0cc5f170ff783a903e50dbac32",
+    "blockHash": "0xd79535ffef6c35b4717999cea44b1877637a198c70f0f7b0d0d212e3acfdbd15",
+    "transactionHash": "0x9e3c6ce87294135c61a9122c968dcf061f135b01d18023bc66f4266557c93b29",
     "logs": [],
-    "blockNumber": 35278804,
-    "cumulativeGasUsed": "969667",
+    "blockNumber": 35301167,
+    "cumulativeGasUsed": "3450783",
     "status": 1,
     "byzantium": true
   },
   "args": [
     "0xF2182c3A96C755E07205B49C2C7B12e6db1f21F9",
     "0x6f42dC74Cc3e75DcAE41aC8690738c86cD503923",
-    "0x3598e6e6b02adfd911EB830De01D23aF083AF1A1"
+    "0x3598e6e6b02adfd911EB830De01D23aF083AF1A1",
+    "0xf85210B21cC50302F477BA56686d2019dC9b67Ad"
   ],
-  "numDeployments": 1,
-  "solcInputHash": "c0391dd37ecfdfca2b1a1e7574a06aa2",
-  "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_aave\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_compound\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_uniswap\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocol\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"FundsAllocated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"refundAmount\",\"type\":\"uint256\"}],\"name\":\"PlanCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"PlanPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"PlanResumed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"SIPCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"aave\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cancelPlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"compound\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"name\":\"createSIPPlan\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getPlan\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"internalType\":\"struct LumoContract.Strategy\",\"name\":\"strategy\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"deposited\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdAt\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"internalType\":\"struct LumoContract.SIPPlan\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pausePlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"resumePlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"uniswap\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userPlans\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"internalType\":\"struct LumoContract.Strategy\",\"name\":\"strategy\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"deposited\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdAt\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/LumoContract.sol\":\"LumoContract\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/LumoContract.sol\":{\"content\":\"// SPDX-License-Identifier: MIT 0x82adEeeFE3f79D0d459878F36B44CD178080013d\\npragma solidity ^0.8.20;\\n\\ncontract LumoContract {\\n    struct Strategy {\\n        uint8 aavePercent;\\n        uint8 compoundPercent;\\n        uint8 uniswapPercent;\\n    }\\n\\n    struct SIPPlan {\\n        address user;\\n        uint256 totalAmount;\\n        uint256 monthlyAmount;\\n        uint256 duration;\\n        Strategy strategy;\\n        uint256 deposited;\\n        uint256 createdAt;\\n        bool active;\\n    }\\n\\n    mapping(address => SIPPlan) public userPlans;\\n    \\n    address public aave;\\n    address public compound;\\n    address public uniswap;\\n    address public owner;\\n\\n    event SIPCreated(address indexed user, uint256 totalAmount, uint256 duration);\\n    event DepositExecuted(address indexed user, uint256 amount);\\n    event FundsAllocated(address indexed protocol, uint256 amount);\\n    event PlanCancelled(address indexed user, uint256 refundAmount);\\n    event PlanPaused(address indexed user);\\n    event PlanResumed(address indexed user);\\n\\n    constructor(address _aave, address _compound, address _uniswap) {\\n        aave = _aave;\\n        compound = _compound;\\n        uniswap = _uniswap;\\n        owner = msg.sender;\\n    }\\n\\n    function createSIPPlan(\\n        uint256 totalAmount,\\n        uint256 monthlyAmount,\\n        uint256 duration,\\n        uint8 aavePercent,\\n        uint8 compoundPercent,\\n        uint8 uniswapPercent\\n    ) external payable {\\n        require(msg.value == totalAmount, \\\"Send correct ETH amount\\\");\\n        require(monthlyAmount <= totalAmount, \\\"Monthly amount exceeds total\\\");\\n        require(aavePercent + compoundPercent + uniswapPercent == 100, \\\"Percents must sum to 100\\\");\\n        require(!userPlans[msg.sender].active, \\\"Plan already exists\\\");\\n\\n        Strategy memory strategy = Strategy({\\n            aavePercent: aavePercent,\\n            compoundPercent: compoundPercent,\\n            uniswapPercent: uniswapPercent\\n        });\\n\\n        userPlans[msg.sender] = SIPPlan({\\n            user: msg.sender,\\n            totalAmount: totalAmount,\\n            monthlyAmount: monthlyAmount,\\n            duration: duration,\\n            strategy: strategy,\\n            deposited: 0,\\n            createdAt: block.timestamp,\\n            active: true\\n        });\\n\\n        emit SIPCreated(msg.sender, totalAmount, duration);\\n\\n        // Execute first deposit immediately\\n        _executeDeposit(msg.sender, totalAmount);\\n    }\\n\\n    function _executeDeposit(address user, uint256 amount) internal {\\n        SIPPlan storage plan = userPlans[user];\\n        require(plan.active, \\\"No active plan\\\");\\n\\n        // Calculate amounts for each protocol\\n        uint256 aaveAmount = (amount * plan.strategy.aavePercent) / 100;\\n        uint256 compoundAmount = (amount * plan.strategy.compoundPercent) / 100;\\n        uint256 uniswapAmount = (amount * plan.strategy.uniswapPercent) / 100;\\n\\n        // Send to mock protocols\\n        (bool success1, ) = aave.call{value: aaveAmount}(\\\"\\\");\\n        require(success1, \\\"Aave deposit failed\\\");\\n        emit FundsAllocated(aave, aaveAmount);\\n\\n        (bool success2, ) = compound.call{value: compoundAmount}(\\\"\\\");\\n        require(success2, \\\"Compound deposit failed\\\");\\n        emit FundsAllocated(compound, compoundAmount);\\n\\n        (bool success3, ) = uniswap.call{value: uniswapAmount}(\\\"\\\");\\n        require(success3, \\\"Uniswap deposit failed\\\");\\n        emit FundsAllocated(uniswap, uniswapAmount);\\n\\n        plan.deposited += amount;\\n        emit DepositExecuted(user, amount);\\n    }\\n\\n    function getPlan(address user) external view returns (SIPPlan memory) {\\n        return userPlans[user];\\n    }\\n\\n    function cancelPlan() external {\\n        SIPPlan storage plan = userPlans[msg.sender];\\n        require(plan.active, \\\"No active plan\\\");\\n\\n        plan.active = false;\\n        \\n        // No refund since all funds are already deposited to protocols\\n        // Users would need to withdraw from individual protocols\\n        emit PlanCancelled(msg.sender, 0);\\n    }\\n\\n    function pausePlan() external {\\n        SIPPlan storage plan = userPlans[msg.sender];\\n        require(plan.active, \\\"No active plan\\\");\\n        \\n        plan.active = false;\\n        emit PlanPaused(msg.sender);\\n    }\\n\\n    function resumePlan() external {\\n        SIPPlan storage plan = userPlans[msg.sender];\\n        require(!plan.active, \\\"Plan already active\\\");\\n        require(plan.user == msg.sender, \\\"No plan found\\\");\\n        \\n        plan.active = true;\\n        emit PlanResumed(msg.sender);\\n    }\\n\\n    receive() external payable {}\\n}\",\"keccak256\":\"0xe374e57c54ed9bf4b4fd5d06646f038b5fbbf3a6d69784d5780e8126e85902f5\",\"license\":\"MIT 0x82adEeeFE3f79D0d459878F36B44CD178080013d\"}},\"version\":1}",
-  "bytecode": "0x608060405234801561001057600080fd5b50604051610efb380380610efb83398101604081905261002f9161009a565b600180546001600160a01b039485166001600160a01b031991821617909155600280549385169382169390931790925560038054919093169082161790915560048054909116331790556100dd565b80516001600160a01b038116811461009557600080fd5b919050565b6000806000606084860312156100af57600080fd5b6100b88461007e565b92506100c66020850161007e565b91506100d46040850161007e565b90509250925092565b610e0f806100ec6000396000f3fe6080604052600436106100955760003560e01c8063819faf7b11610059578063819faf7b1461023b5780638da5cb5b1461025b578063f69e20461461027b578063f75b4ddd1461029b578063f821e1ab146102b057600080fd5b80632681f7e4146100a15780633af3be64146100de57806346c50121146100f357806350b61bc1146101085780637cb22aaf1461020e57600080fd5b3661009c57005b600080fd5b3480156100ad57600080fd5b506003546100c1906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6100f16100ec366004610c15565b6102c5565b005b3480156100ff57600080fd5b506100f1610579565b34801561011457600080fd5b5061019f610123366004610c74565b6000602081815291815260409081902080546001820154600283015460038401548551606081018752600486015460ff80821683526101008204811699830199909952620100009004881696810196909652600585015460068601546007909601546001600160a01b0390951697939692959194929390921688565b604080516001600160a01b0390991689526020808a0198909852888101969096526060880194909452825160ff908116608089015295830151861660a0880152919093015190931660c085015260e08401919091526101008301919091521515610120820152610140016100d5565b34801561021a57600080fd5b5061022e610229366004610c74565b610659565b6040516100d59190610ca4565b34801561024757600080fd5b506001546100c1906001600160a01b031681565b34801561026757600080fd5b506004546100c1906001600160a01b031681565b34801561028757600080fd5b506002546100c1906001600160a01b031681565b3480156102a757600080fd5b506100f1610762565b3480156102bc57600080fd5b506100f16107da565b8534146103195760405162461bcd60e51b815260206004820152601760248201527f53656e6420636f72726563742045544820616d6f756e7400000000000000000060448201526064015b60405180910390fd5b858511156103695760405162461bcd60e51b815260206004820152601c60248201527f4d6f6e74686c7920616d6f756e74206578636565647320746f74616c000000006044820152606401610310565b806103748385610d46565b61037e9190610d46565b60ff166064146103d05760405162461bcd60e51b815260206004820152601860248201527f50657263656e7473206d7573742073756d20746f2031303000000000000000006044820152606401610310565b3360009081526020819052604090206007015460ff16156104295760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792065786973747360681b6044820152606401610310565b604080516060808201835260ff86811683528581166020808501919091528582168486015284516101008082018752338083528284018e81528389018e81529684018d815260808501898152600060a087018181524260c08901908152600160e08a01818152888552848c52938f902099518a546001600160a01b0319166001600160a01b03909116178a559551958901959095559951600288015591516003870155518051600487018054838a0151938e0151928b1661ffff1990911617928a169096029190911762ff00001916620100009190981602969096179092559451600583015551600682015591516007909201805460ff19169215159290921790915583518a8152908101889052919290917f1bd96959e90b965ecd58bac046f8d20f293cf639656f8987da258ccffc324361910160405180910390a26105703388610847565b50505050505050565b336000908152602081905260409020600781015460ff16156105d35760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792061637469766560681b6044820152606401610310565b80546001600160a01b0316331461061c5760405162461bcd60e51b815260206004820152600d60248201526c139bc81c1b185b88199bdd5b99609a1b6044820152606401610310565b60078101805460ff1916600117905560405133907fa351aa6b447b864d6584b25aaa08b8342a9f7e118a0f73f762a341d4a4865ff090600090a250565b6106b960408051610100810182526000808252602080830182905282840182905260608084018390528451908101855282815290810182905292830152906080820190815260200160008152602001600081526020016000151581525090565b506001600160a01b03908116600090815260208181526040918290208251610100808201855282549095168152600182015481840152600282015481850152600382015460608083019190915284519081018552600483015460ff8082168352968104871694820194909452620100009093048516938301939093526080830191909152600581015460a0830152600681015460c083015260070154909116151560e082015290565b336000908152602081905260409020600781015460ff166107955760405162461bcd60e51b815260040161031090610d65565b60078101805460ff191690556040516000815233907f3ee9ca28321072883626157ba61d1c97dbb201875f5b65ab4d78f77fc316a31c9060200160405180910390a250565b336000908152602081905260409020600781015460ff1661080d5760405162461bcd60e51b815260040161031090610d65565b60078101805460ff1916905560405133907f0cb4de5ffdedd9dec2af4e11b70186c597f68399bb16c7ce622b73a73d3691ea90600090a250565b6001600160a01b0382166000908152602081905260409020600781015460ff166108835760405162461bcd60e51b815260040161031090610d65565b600481015460009060649061089b9060ff1685610d8d565b6108a59190610da4565b60048301549091506000906064906108c590610100900460ff1686610d8d565b6108cf9190610da4565b60048401549091506000906064906108f09062010000900460ff1687610d8d565b6108fa9190610da4565b6001546040519192506000916001600160a01b039091169085908381818185875af1925050503d806000811461094c576040519150601f19603f3d011682016040523d82523d6000602084013e610951565b606091505b50509050806109985760405162461bcd60e51b815260206004820152601360248201527210585d994819195c1bdcda5d0819985a5b1959606a1b6044820152606401610310565b6001546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a26002546040516000916001600160a01b03169085908381818185875af1925050503d8060008114610a27576040519150601f19603f3d011682016040523d82523d6000602084013e610a2c565b606091505b5050905080610a7d5760405162461bcd60e51b815260206004820152601760248201527f436f6d706f756e64206465706f736974206661696c65640000000000000000006044820152606401610310565b6002546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a26003546040516000916001600160a01b03169085908381818185875af1925050503d8060008114610b0c576040519150601f19603f3d011682016040523d82523d6000602084013e610b11565b606091505b5050905080610b5b5760405162461bcd60e51b8152602060048201526016602482015275155b9a5cddd85c0819195c1bdcda5d0819985a5b195960521b6044820152606401610310565b6003546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a287876005016000828254610bb19190610dc6565b90915550506040518881526001600160a01b038a16907fb631da01970acb54913c65493e64f776e136bf2d15f6d3c10a949660d552039c9060200160405180910390a2505050505050505050565b803560ff81168114610c1057600080fd5b919050565b60008060008060008060c08789031215610c2e57600080fd5b863595506020870135945060408701359350610c4c60608801610bff565b9250610c5a60808801610bff565b9150610c6860a08801610bff565b90509295509295509295565b600060208284031215610c8657600080fd5b81356001600160a01b0381168114610c9d57600080fd5b9392505050565b81516001600160a01b03168152602080830151908201526040808301519082015260608083015190820152608080830151610140830191610d079084018260ff815116825260ff602082015116602083015260ff60408201511660408301525050565b5060a083015160e083015260c083015161010083015260e0830151151561012083015292915050565b634e487b7160e01b600052601160045260246000fd5b60ff8181168382160190811115610d5f57610d5f610d30565b92915050565b6020808252600e908201526d27379030b1ba34bb3290383630b760911b604082015260600190565b8082028115828204841417610d5f57610d5f610d30565b600082610dc157634e487b7160e01b600052601260045260246000fd5b500490565b80820180821115610d5f57610d5f610d3056fea26469706673582212200740e5c9f1f4a1e400c6c53fae68e0ec91a3c488122257b54bddf811841037fd64736f6c63430008140033",
-  "deployedBytecode": "0x6080604052600436106100955760003560e01c8063819faf7b11610059578063819faf7b1461023b5780638da5cb5b1461025b578063f69e20461461027b578063f75b4ddd1461029b578063f821e1ab146102b057600080fd5b80632681f7e4146100a15780633af3be64146100de57806346c50121146100f357806350b61bc1146101085780637cb22aaf1461020e57600080fd5b3661009c57005b600080fd5b3480156100ad57600080fd5b506003546100c1906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6100f16100ec366004610c15565b6102c5565b005b3480156100ff57600080fd5b506100f1610579565b34801561011457600080fd5b5061019f610123366004610c74565b6000602081815291815260409081902080546001820154600283015460038401548551606081018752600486015460ff80821683526101008204811699830199909952620100009004881696810196909652600585015460068601546007909601546001600160a01b0390951697939692959194929390921688565b604080516001600160a01b0390991689526020808a0198909852888101969096526060880194909452825160ff908116608089015295830151861660a0880152919093015190931660c085015260e08401919091526101008301919091521515610120820152610140016100d5565b34801561021a57600080fd5b5061022e610229366004610c74565b610659565b6040516100d59190610ca4565b34801561024757600080fd5b506001546100c1906001600160a01b031681565b34801561026757600080fd5b506004546100c1906001600160a01b031681565b34801561028757600080fd5b506002546100c1906001600160a01b031681565b3480156102a757600080fd5b506100f1610762565b3480156102bc57600080fd5b506100f16107da565b8534146103195760405162461bcd60e51b815260206004820152601760248201527f53656e6420636f72726563742045544820616d6f756e7400000000000000000060448201526064015b60405180910390fd5b858511156103695760405162461bcd60e51b815260206004820152601c60248201527f4d6f6e74686c7920616d6f756e74206578636565647320746f74616c000000006044820152606401610310565b806103748385610d46565b61037e9190610d46565b60ff166064146103d05760405162461bcd60e51b815260206004820152601860248201527f50657263656e7473206d7573742073756d20746f2031303000000000000000006044820152606401610310565b3360009081526020819052604090206007015460ff16156104295760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792065786973747360681b6044820152606401610310565b604080516060808201835260ff86811683528581166020808501919091528582168486015284516101008082018752338083528284018e81528389018e81529684018d815260808501898152600060a087018181524260c08901908152600160e08a01818152888552848c52938f902099518a546001600160a01b0319166001600160a01b03909116178a559551958901959095559951600288015591516003870155518051600487018054838a0151938e0151928b1661ffff1990911617928a169096029190911762ff00001916620100009190981602969096179092559451600583015551600682015591516007909201805460ff19169215159290921790915583518a8152908101889052919290917f1bd96959e90b965ecd58bac046f8d20f293cf639656f8987da258ccffc324361910160405180910390a26105703388610847565b50505050505050565b336000908152602081905260409020600781015460ff16156105d35760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792061637469766560681b6044820152606401610310565b80546001600160a01b0316331461061c5760405162461bcd60e51b815260206004820152600d60248201526c139bc81c1b185b88199bdd5b99609a1b6044820152606401610310565b60078101805460ff1916600117905560405133907fa351aa6b447b864d6584b25aaa08b8342a9f7e118a0f73f762a341d4a4865ff090600090a250565b6106b960408051610100810182526000808252602080830182905282840182905260608084018390528451908101855282815290810182905292830152906080820190815260200160008152602001600081526020016000151581525090565b506001600160a01b03908116600090815260208181526040918290208251610100808201855282549095168152600182015481840152600282015481850152600382015460608083019190915284519081018552600483015460ff8082168352968104871694820194909452620100009093048516938301939093526080830191909152600581015460a0830152600681015460c083015260070154909116151560e082015290565b336000908152602081905260409020600781015460ff166107955760405162461bcd60e51b815260040161031090610d65565b60078101805460ff191690556040516000815233907f3ee9ca28321072883626157ba61d1c97dbb201875f5b65ab4d78f77fc316a31c9060200160405180910390a250565b336000908152602081905260409020600781015460ff1661080d5760405162461bcd60e51b815260040161031090610d65565b60078101805460ff1916905560405133907f0cb4de5ffdedd9dec2af4e11b70186c597f68399bb16c7ce622b73a73d3691ea90600090a250565b6001600160a01b0382166000908152602081905260409020600781015460ff166108835760405162461bcd60e51b815260040161031090610d65565b600481015460009060649061089b9060ff1685610d8d565b6108a59190610da4565b60048301549091506000906064906108c590610100900460ff1686610d8d565b6108cf9190610da4565b60048401549091506000906064906108f09062010000900460ff1687610d8d565b6108fa9190610da4565b6001546040519192506000916001600160a01b039091169085908381818185875af1925050503d806000811461094c576040519150601f19603f3d011682016040523d82523d6000602084013e610951565b606091505b50509050806109985760405162461bcd60e51b815260206004820152601360248201527210585d994819195c1bdcda5d0819985a5b1959606a1b6044820152606401610310565b6001546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a26002546040516000916001600160a01b03169085908381818185875af1925050503d8060008114610a27576040519150601f19603f3d011682016040523d82523d6000602084013e610a2c565b606091505b5050905080610a7d5760405162461bcd60e51b815260206004820152601760248201527f436f6d706f756e64206465706f736974206661696c65640000000000000000006044820152606401610310565b6002546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a26003546040516000916001600160a01b03169085908381818185875af1925050503d8060008114610b0c576040519150601f19603f3d011682016040523d82523d6000602084013e610b11565b606091505b5050905080610b5b5760405162461bcd60e51b8152602060048201526016602482015275155b9a5cddd85c0819195c1bdcda5d0819985a5b195960521b6044820152606401610310565b6003546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a287876005016000828254610bb19190610dc6565b90915550506040518881526001600160a01b038a16907fb631da01970acb54913c65493e64f776e136bf2d15f6d3c10a949660d552039c9060200160405180910390a2505050505050505050565b803560ff81168114610c1057600080fd5b919050565b60008060008060008060c08789031215610c2e57600080fd5b863595506020870135945060408701359350610c4c60608801610bff565b9250610c5a60808801610bff565b9150610c6860a08801610bff565b90509295509295509295565b600060208284031215610c8657600080fd5b81356001600160a01b0381168114610c9d57600080fd5b9392505050565b81516001600160a01b03168152602080830151908201526040808301519082015260608083015190820152608080830151610140830191610d079084018260ff815116825260ff602082015116602083015260ff60408201511660408301525050565b5060a083015160e083015260c083015161010083015260e0830151151561012083015292915050565b634e487b7160e01b600052601160045260246000fd5b60ff8181168382160190811115610d5f57610d5f610d30565b92915050565b6020808252600e908201526d27379030b1ba34bb3290383630b760911b604082015260600190565b8082028115828204841417610d5f57610d5f610d30565b600082610dc157634e487b7160e01b600052601260045260246000fd5b500490565b80820180821115610d5f57610d5f610d3056fea26469706673582212200740e5c9f1f4a1e400c6c53fae68e0ec91a3c488122257b54bddf811841037fd64736f6c63430008140033",
+  "numDeployments": 2,
+  "solcInputHash": "22333457be08516d34e5470c2a566d60",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_aave\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_compound\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_uniswap\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spendPermissionManager\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocol\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"FundsAllocated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"PlanCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"PlanPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"PlanResumed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"}],\"name\":\"SIPCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"aave\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"cancelPlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"compound\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"name\":\"createSIPPlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"depositDirect\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint160\",\"name\":\"allowance\",\"type\":\"uint160\"},{\"internalType\":\"uint48\",\"name\":\"period\",\"type\":\"uint48\"},{\"internalType\":\"uint48\",\"name\":\"start\",\"type\":\"uint48\"},{\"internalType\":\"uint48\",\"name\":\"end\",\"type\":\"uint48\"},{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"internalType\":\"struct ISpendPermissionManager.SpendPermission\",\"name\":\"spendPermission\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"uint160\",\"name\":\"amount\",\"type\":\"uint160\"}],\"name\":\"executeDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"getPlan\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"internalType\":\"struct LumoContract.Strategy\",\"name\":\"strategy\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"totalDeposited\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastDepositTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdAt\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"internalType\":\"struct LumoContract.SIPPlan\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserPlanIds\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"pausePlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"}],\"name\":\"resumePlan\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_spendPermissionManager\",\"type\":\"address\"}],\"name\":\"setSpendPermissionManager\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"spendPermissionManager\",\"outputs\":[{\"internalType\":\"contract ISpendPermissionManager\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"uniswap\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"userPlanIds\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"userPlans\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"planId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"monthlyAmount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"aavePercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"compoundPercent\",\"type\":\"uint8\"},{\"internalType\":\"uint8\",\"name\":\"uniswapPercent\",\"type\":\"uint8\"}],\"internalType\":\"struct LumoContract.Strategy\",\"name\":\"strategy\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"totalDeposited\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastDepositTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdAt\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"details\":\"Uses Coinbase's SpendPermissionManager for automated deposits\",\"kind\":\"dev\",\"methods\":{\"createSIPPlan(uint256,uint256,uint8,uint8,uint8)\":{\"details\":\"This is called by the frontend when user confirms their plan\",\"params\":{\"aavePercent\":\"Percentage allocation to Aave\",\"compoundPercent\":\"Percentage allocation to Compound\",\"monthlyAmount\":\"Monthly investment amount in wei\",\"planId\":\"The database plan ID for reference\",\"uniswapPercent\":\"Percentage allocation to Uniswap\"}},\"depositDirect(uint256)\":{\"details\":\"Alternative method for direct deposits without spend permissions\",\"params\":{\"planId\":\"The plan ID to fund\"}},\"executeDeposit(address,uint256,(address,address,address,uint160,uint48,uint48,uint48,uint256,bytes),bytes,uint160)\":{\"details\":\"Called by the server wallet (spender) using the stored spend permission\",\"params\":{\"amount\":\"Amount to deposit in this execution\",\"planId\":\"The plan ID to execute\",\"signature\":\"The user's signature for the spend permission\",\"spendPermission\":\"The spend permission struct\",\"user\":\"The user whose SIP is being executed\"}}},\"title\":\"LumoContract\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"cancelPlan(uint256)\":{\"notice\":\"Cancel a SIP plan\"},\"createSIPPlan(uint256,uint256,uint8,uint8,uint8)\":{\"notice\":\"Create a new SIP plan for a user\"},\"depositDirect(uint256)\":{\"notice\":\"Execute a deposit with direct ETH transfer (for users who send ETH directly)\"},\"executeDeposit(address,uint256,(address,address,address,uint160,uint48,uint48,uint48,uint256,bytes),bytes,uint160)\":{\"notice\":\"Execute a deposit for a user's SIP plan using spend permission\"},\"getPlan(address,uint256)\":{\"notice\":\"Get a user's SIP plan\"},\"getUserPlanIds(address)\":{\"notice\":\"Get all plan IDs for a user\"},\"pausePlan(uint256)\":{\"notice\":\"Pause a SIP plan\"},\"resumePlan(uint256)\":{\"notice\":\"Resume a paused SIP plan\"},\"setSpendPermissionManager(address)\":{\"notice\":\"Update the SpendPermissionManager address\"},\"transferOwnership(address)\":{\"notice\":\"Transfer ownership\"}},\"notice\":\"Main contract for Lumo SIP (Systematic Investment Plan) DeFi automation\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/LumoContract.sol\":\"LumoContract\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/LumoContract.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.20;\\n\\nimport \\\"./interfaces/ISpendPermissionManager.sol\\\";\\n\\n/**\\n * @title LumoContract\\n * @notice Main contract for Lumo SIP (Systematic Investment Plan) DeFi automation\\n * @dev Uses Coinbase's SpendPermissionManager for automated deposits\\n */\\ncontract LumoContract {\\n    struct Strategy {\\n        uint8 aavePercent;\\n        uint8 compoundPercent;\\n        uint8 uniswapPercent;\\n    }\\n\\n    struct SIPPlan {\\n        address user;\\n        uint256 planId;           // Database plan ID for reference\\n        uint256 monthlyAmount;\\n        Strategy strategy;\\n        uint256 totalDeposited;\\n        uint256 lastDepositTime;\\n        uint256 createdAt;\\n        bool active;\\n    }\\n\\n    // User address => Plan ID => SIPPlan (users can have multiple plans)\\n    mapping(address => mapping(uint256 => SIPPlan)) public userPlans;\\n    // User address => array of plan IDs\\n    mapping(address => uint256[]) public userPlanIds;\\n    \\n    address public aave;\\n    address public compound;\\n    address public uniswap;\\n    address public owner;\\n    \\n    // SpendPermissionManager contract address (Base Sepolia)\\n    ISpendPermissionManager public spendPermissionManager;\\n\\n    event SIPCreated(address indexed user, uint256 indexed planId, uint256 monthlyAmount);\\n    event DepositExecuted(address indexed user, uint256 indexed planId, uint256 amount);\\n    event FundsAllocated(address indexed protocol, uint256 amount);\\n    event PlanCancelled(address indexed user, uint256 indexed planId);\\n    event PlanPaused(address indexed user, uint256 indexed planId);\\n    event PlanResumed(address indexed user, uint256 indexed planId);\\n\\n    modifier onlyOwner() {\\n        require(msg.sender == owner, \\\"Only owner\\\");\\n        _;\\n    }\\n\\n    constructor(\\n        address _aave, \\n        address _compound, \\n        address _uniswap,\\n        address _spendPermissionManager\\n    ) {\\n        aave = _aave;\\n        compound = _compound;\\n        uniswap = _uniswap;\\n        spendPermissionManager = ISpendPermissionManager(_spendPermissionManager);\\n        owner = msg.sender;\\n    }\\n\\n    /**\\n     * @notice Create a new SIP plan for a user\\n     * @dev This is called by the frontend when user confirms their plan\\n     * @param planId The database plan ID for reference\\n     * @param monthlyAmount Monthly investment amount in wei\\n     * @param aavePercent Percentage allocation to Aave\\n     * @param compoundPercent Percentage allocation to Compound\\n     * @param uniswapPercent Percentage allocation to Uniswap\\n     */\\n    function createSIPPlan(\\n        uint256 planId,\\n        uint256 monthlyAmount,\\n        uint8 aavePercent,\\n        uint8 compoundPercent,\\n        uint8 uniswapPercent\\n    ) external {\\n        require(monthlyAmount > 0, \\\"Monthly amount must be greater than 0\\\");\\n        require(aavePercent + compoundPercent + uniswapPercent == 100, \\\"Percents must sum to 100\\\");\\n        require(userPlans[msg.sender][planId].createdAt == 0, \\\"Plan already exists\\\");\\n\\n        Strategy memory strategy = Strategy({\\n            aavePercent: aavePercent,\\n            compoundPercent: compoundPercent,\\n            uniswapPercent: uniswapPercent\\n        });\\n\\n        userPlans[msg.sender][planId] = SIPPlan({\\n            user: msg.sender,\\n            planId: planId,\\n            monthlyAmount: monthlyAmount,\\n            strategy: strategy,\\n            totalDeposited: 0,\\n            lastDepositTime: 0,\\n            createdAt: block.timestamp,\\n            active: true\\n        });\\n\\n        userPlanIds[msg.sender].push(planId);\\n\\n        emit SIPCreated(msg.sender, planId, monthlyAmount);\\n    }\\n\\n    /**\\n     * @notice Execute a deposit for a user's SIP plan using spend permission\\n     * @dev Called by the server wallet (spender) using the stored spend permission\\n     * @param user The user whose SIP is being executed\\n     * @param planId The plan ID to execute\\n     * @param spendPermission The spend permission struct\\n     * @param signature The user's signature for the spend permission\\n     * @param amount Amount to deposit in this execution\\n     */\\n    function executeDeposit(\\n        address user,\\n        uint256 planId,\\n        ISpendPermissionManager.SpendPermission calldata spendPermission,\\n        bytes calldata signature,\\n        uint160 amount\\n    ) external onlyOwner {\\n        SIPPlan storage plan = userPlans[user][planId];\\n        require(plan.active, \\\"No active plan\\\");\\n        require(plan.user == user, \\\"User mismatch\\\");\\n        require(spendPermission.account == user, \\\"Permission account mismatch\\\");\\n        require(spendPermission.spender == msg.sender, \\\"Spender mismatch\\\");\\n\\n        // First, approve the spend permission on-chain if not already approved\\n        if (!spendPermissionManager.isApproved(spendPermission)) {\\n            spendPermissionManager.approveWithSignature(spendPermission, signature);\\n        }\\n\\n        // Execute the spend - this transfers tokens from user to this contract\\n        spendPermissionManager.spend(spendPermission, amount);\\n\\n        // Now allocate the received funds to protocols\\n        _allocateFunds(plan, amount);\\n\\n        plan.totalDeposited += amount;\\n        plan.lastDepositTime = block.timestamp;\\n\\n        emit DepositExecuted(user, planId, amount);\\n    }\\n\\n    /**\\n     * @notice Execute a deposit with direct ETH transfer (for users who send ETH directly)\\n     * @dev Alternative method for direct deposits without spend permissions\\n     * @param planId The plan ID to fund\\n     */\\n    function depositDirect(uint256 planId) external payable {\\n        SIPPlan storage plan = userPlans[msg.sender][planId];\\n        require(plan.active, \\\"No active plan\\\");\\n        require(msg.value > 0, \\\"Must send ETH\\\");\\n\\n        _allocateFunds(plan, msg.value);\\n\\n        plan.totalDeposited += msg.value;\\n        plan.lastDepositTime = block.timestamp;\\n\\n        emit DepositExecuted(msg.sender, planId, msg.value);\\n    }\\n\\n    /**\\n     * @notice Internal function to allocate funds to protocols based on strategy\\n     */\\n    function _allocateFunds(SIPPlan storage plan, uint256 amount) internal {\\n        // Calculate amounts for each protocol\\n        uint256 aaveAmount = (amount * plan.strategy.aavePercent) / 100;\\n        uint256 compoundAmount = (amount * plan.strategy.compoundPercent) / 100;\\n        uint256 uniswapAmount = (amount * plan.strategy.uniswapPercent) / 100;\\n\\n        // Send to mock protocols\\n        if (aaveAmount > 0) {\\n            (bool success1, ) = aave.call{value: aaveAmount}(\\\"\\\");\\n            require(success1, \\\"Aave deposit failed\\\");\\n            emit FundsAllocated(aave, aaveAmount);\\n        }\\n\\n        if (compoundAmount > 0) {\\n            (bool success2, ) = compound.call{value: compoundAmount}(\\\"\\\");\\n            require(success2, \\\"Compound deposit failed\\\");\\n            emit FundsAllocated(compound, compoundAmount);\\n        }\\n\\n        if (uniswapAmount > 0) {\\n            (bool success3, ) = uniswap.call{value: uniswapAmount}(\\\"\\\");\\n            require(success3, \\\"Uniswap deposit failed\\\");\\n            emit FundsAllocated(uniswap, uniswapAmount);\\n        }\\n    }\\n\\n    /**\\n     * @notice Get a user's SIP plan\\n     */\\n    function getPlan(address user, uint256 planId) external view returns (SIPPlan memory) {\\n        return userPlans[user][planId];\\n    }\\n\\n    /**\\n     * @notice Get all plan IDs for a user\\n     */\\n    function getUserPlanIds(address user) external view returns (uint256[] memory) {\\n        return userPlanIds[user];\\n    }\\n\\n    /**\\n     * @notice Cancel a SIP plan\\n     */\\n    function cancelPlan(uint256 planId) external {\\n        SIPPlan storage plan = userPlans[msg.sender][planId];\\n        require(plan.active, \\\"No active plan\\\");\\n        require(plan.user == msg.sender, \\\"Not plan owner\\\");\\n\\n        plan.active = false;\\n        emit PlanCancelled(msg.sender, planId);\\n    }\\n\\n    /**\\n     * @notice Pause a SIP plan\\n     */\\n    function pausePlan(uint256 planId) external {\\n        SIPPlan storage plan = userPlans[msg.sender][planId];\\n        require(plan.active, \\\"No active plan\\\");\\n        require(plan.user == msg.sender, \\\"Not plan owner\\\");\\n        \\n        plan.active = false;\\n        emit PlanPaused(msg.sender, planId);\\n    }\\n\\n    /**\\n     * @notice Resume a paused SIP plan\\n     */\\n    function resumePlan(uint256 planId) external {\\n        SIPPlan storage plan = userPlans[msg.sender][planId];\\n        require(plan.createdAt > 0, \\\"Plan does not exist\\\");\\n        require(plan.user == msg.sender, \\\"Not plan owner\\\");\\n        require(!plan.active, \\\"Plan already active\\\");\\n        \\n        plan.active = true;\\n        emit PlanResumed(msg.sender, planId);\\n    }\\n\\n    /**\\n     * @notice Update the SpendPermissionManager address\\n     */\\n    function setSpendPermissionManager(address _spendPermissionManager) external onlyOwner {\\n        spendPermissionManager = ISpendPermissionManager(_spendPermissionManager);\\n    }\\n\\n    /**\\n     * @notice Transfer ownership\\n     */\\n    function transferOwnership(address newOwner) external onlyOwner {\\n        require(newOwner != address(0), \\\"Invalid address\\\");\\n        owner = newOwner;\\n    }\\n\\n    receive() external payable {}\\n}\",\"keccak256\":\"0x4dc6f08c9e8c9df583c2d7f46171d24e8ba645d9e4f653bae884fa61c49d5c15\",\"license\":\"MIT\"},\"contracts/interfaces/ISpendPermissionManager.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.20;\\n\\n/**\\n * @title ISpendPermissionManager\\n * @notice Interface for Coinbase's SpendPermissionManager contract\\n * @dev Deployed on Base Sepolia at 0xf85210B21cC50302F477BA56686d2019dC9b67Ad\\n */\\ninterface ISpendPermissionManager {\\n    /// @notice A spend permission for an external entity to spend an account's tokens.\\n    struct SpendPermission {\\n        address account;      // Smart account this permission is valid for\\n        address spender;      // Entity that can spend account's tokens\\n        address token;        // Token address (ERC-7528 native token or ERC-20)\\n        uint160 allowance;    // Maximum allowed value to spend within each period\\n        uint48 period;        // Time duration for resetting allowance (seconds)\\n        uint48 start;         // Start timestamp (inclusive, unix seconds)\\n        uint48 end;           // End timestamp (exclusive, unix seconds)\\n        uint256 salt;         // Arbitrary data for uniqueness\\n        bytes extraData;      // Arbitrary data for the spender\\n    }\\n\\n    /// @notice Period parameters and spend usage.\\n    struct PeriodSpend {\\n        uint48 start;    // Period start timestamp\\n        uint48 end;      // Period end timestamp\\n        uint160 spend;   // Accumulated spend for the period\\n    }\\n\\n    /// @notice Approve a spend permission via a signature from the account.\\n    /// @param spendPermission Details of the spend permission.\\n    /// @param signature Signed approval from the user.\\n    /// @return approved True if spend permission is approved and not revoked.\\n    function approveWithSignature(\\n        SpendPermission calldata spendPermission,\\n        bytes calldata signature\\n    ) external returns (bool);\\n\\n    /// @notice Spend tokens using a spend permission.\\n    /// @dev Reverts if not called by the spender of the spend permission.\\n    /// @param spendPermission Details of the spend permission.\\n    /// @param value Amount of token attempting to spend.\\n    function spend(SpendPermission memory spendPermission, uint160 value) external;\\n\\n    /// @notice Get if a spend permission is approved.\\n    /// @param spendPermission Details of the spend permission.\\n    /// @return approved True if spend permission is approved.\\n    function isApproved(SpendPermission memory spendPermission) external view returns (bool);\\n\\n    /// @notice Get the unique hash for a spend permission.\\n    /// @param spendPermission Details of the spend permission.\\n    /// @return hash Unique hash.\\n    function getHash(SpendPermission memory spendPermission) external view returns (bytes32);\\n\\n    /// @notice Get the last updated period for a spend permission.\\n    /// @param spendPermission Details of the spend permission.\\n    /// @return lastUpdatedPeriod The last updated period with spend usage.\\n    function getLastUpdatedPeriod(SpendPermission memory spendPermission) external view returns (PeriodSpend memory);\\n}\\n\",\"keccak256\":\"0x0535c7c752e8b2f6d61a720c39c49186f8dbbac12cd67e6bf9f0bf8e7e82fb1b\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b5060405162001b0338038062001b038339810160408190526200003491620000b1565b600280546001600160a01b03199081166001600160a01b039687161790915560038054821694861694909417909355600480548416928516929092179091556006805483169190931617909155600580543392169190911790556200010e565b80516001600160a01b0381168114620000ac57600080fd5b919050565b60008060008060808587031215620000c857600080fd5b620000d38562000094565b9350620000e36020860162000094565b9250620000f36040860162000094565b9150620001036060860162000094565b905092959194509250565b6119e5806200011e6000396000f3fe6080604052600436106101025760003560e01c80638da5cb5b11610095578063e4b6054011610064578063e4b60540146103a3578063f1e4d3b2146103d0578063f2fde38b146103f0578063f457ae1914610410578063f69e20461461043057600080fd5b80638da5cb5b1461031557806390840cd514610335578063b35876e714610355578063cff979a61461037557600080fd5b806380d6664c116100d157806380d6664c146101ad578063819faf7b146101cd578063831820f0146101ed57806383589fde146102f557600080fd5b80632681f7e41461010e57806352cd407f1461014b578063538389221461016d57806368c2fe991461018057600080fd5b3661010957005b600080fd5b34801561011a57600080fd5b5060045461012e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b34801561015757600080fd5b5061016b61016636600461144e565b610450565b005b61016b61017b36600461151a565b6107b4565b34801561018c57600080fd5b506101a061019b366004611533565b610894565b604051610142919061155f565b3480156101b957600080fd5b5061016b6101c836600461151a565b610950565b3480156101d957600080fd5b5060025461012e906001600160a01b031681565b3480156101f957600080fd5b5061028c610208366004611533565b60006020818152928152604080822084529181528190208054600182015460028301548451606081018652600385015460ff808216835261010082048116988301989098526201000090048716958101959095526004840154600585015460068601546007909601546001600160a01b039095169793969295929491939092911688565b604080516001600160a01b0390991689526020808a019890985288810196909652845160ff90811660608a01529685015187166080890152939094015190941660a086015260c085015260e0840192909252610100830152151561012082015261014001610142565b34801561030157600080fd5b5061016b61031036600461151a565b6109f2565b34801561032157600080fd5b5060055461012e906001600160a01b031681565b34801561034157600080fd5b5060065461012e906001600160a01b031681565b34801561036157600080fd5b5061016b61037036600461151a565b610a94565b34801561038157600080fd5b50610395610390366004611533565b610ba7565b604051908152602001610142565b3480156103af57600080fd5b506103c36103be3660046115eb565b610bd8565b604051610142919061160f565b3480156103dc57600080fd5b5061016b6103eb366004611664565b610c44565b3480156103fc57600080fd5b5061016b61040b3660046115eb565b610f95565b34801561041c57600080fd5b5061016b61042b3660046115eb565b611029565b34801561043c57600080fd5b5060035461012e906001600160a01b031681565b6005546001600160a01b031633146104835760405162461bcd60e51b815260040161047a906116bb565b60405180910390fd5b6001600160a01b0386166000908152602081815260408083208884529091529020600781015460ff166104c85760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b038881169116146105145760405162461bcd60e51b815260206004820152600d60248201526c0aae6cae440dad2e6dac2e8c6d609b1b604482015260640161047a565b6001600160a01b03871661052b60208701876115eb565b6001600160a01b0316146105815760405162461bcd60e51b815260206004820152601b60248201527f5065726d697373696f6e206163636f756e74206d69736d617463680000000000604482015260640161047a565b3361059260408701602088016115eb565b6001600160a01b0316146105db5760405162461bcd60e51b815260206004820152601060248201526f0a6e0cadcc8cae440dad2e6dac2e8c6d60831b604482015260640161047a565b600654604051639e16b82f60e01b81526001600160a01b0390911690639e16b82f9061060b90889060040161187d565b602060405180830381865afa158015610628573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061064c9190611890565b6106c95760065460405163b9ffc8e160e01b81526001600160a01b039091169063b9ffc8e190610684908890889088906004016118b2565b6020604051808303816000875af11580156106a3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106c79190611890565b505b60065460405163415a973560e01b81526001600160a01b039091169063415a9735906106fb90889086906004016118e2565b600060405180830381600087803b15801561071557600080fd5b505af1158015610729573d6000803e3d6000fd5b5050505061074081836001600160a01b0316611075565b816001600160a01b031681600401600082825461075d9190611922565b90915550504260058201556040516001600160a01b0383811682528791908916907fcf75a80a22cde0edcefe708f860e644c73eb8921aac7890f3bec010eef965f649060200160405180910390a350505050505050565b336000908152602081815260408083208484529091529020600781015460ff166107f05760405162461bcd60e51b815260040161047a906116df565b600034116108305760405162461bcd60e51b815260206004820152600d60248201526c09aeae6e840e6cadcc8408aa89609b1b604482015260640161047a565b61083a8134611075565b3481600401600082825461084e9190611922565b9091555050426005820155604051348152829033907fcf75a80a22cde0edcefe708f860e644c73eb8921aac7890f3bec010eef965f649060200160405180910390a35050565b61089c6113ab565b506001600160a01b038083166000908152602081815260408083208584528252918290208251610100808201855282549095168152600182015481840152600282015481850152835160608181018652600384015460ff8082168452978104881695830195909552620100009094048616948101949094529182019290925260048201546080820152600582015460a0820152600682015460c0820152600790910154909116151560e08201525b92915050565b336000908152602081815260408083208484529091529020600781015460ff1661098c5760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b031633146109b55760405162461bcd60e51b815260040161047a90611935565b60078101805460ff19169055604051829033907f3ee9ca28321072883626157ba61d1c97dbb201875f5b65ab4d78f77fc316a31c90600090a35050565b336000908152602081815260408083208484529091529020600781015460ff16610a2e5760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b03163314610a575760405162461bcd60e51b815260040161047a90611935565b60078101805460ff19169055604051829033907f0f0575314e9a6c84f2bff03b4ceae4b5d4ca0fe92bff1acb153f13e5e36db71f90600090a35050565b3360009081526020818152604080832084845290915290206006810154610af35760405162461bcd60e51b8152602060048201526013602482015272141b185b88191bd95cc81b9bdd08195e1a5cdd606a1b604482015260640161047a565b80546001600160a01b03163314610b1c5760405162461bcd60e51b815260040161047a90611935565b600781015460ff1615610b675760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792061637469766560681b604482015260640161047a565b60078101805460ff19166001179055604051829033907f64bf4125848d90010c24cc30cdbcb050b80009b859b208313f6259c7dc12d99490600090a35050565b60016020528160005260406000208181548110610bc357600080fd5b90600052602060002001600091509150505481565b6001600160a01b038116600090815260016020908152604091829020805483518184028101840190945280845260609392830182828015610c3857602002820191906000526020600020905b815481526020019060010190808311610c24575b50505050509050919050565b60008411610ca25760405162461bcd60e51b815260206004820152602560248201527f4d6f6e74686c7920616d6f756e74206d75737420626520677265617465722074604482015264068616e20360dc1b606482015260840161047a565b80610cad838561195d565b610cb7919061195d565b60ff16606414610d095760405162461bcd60e51b815260206004820152601860248201527f50657263656e7473206d7573742073756d20746f203130300000000000000000604482015260640161047a565b3360009081526020818152604080832088845290915290206006015415610d685760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792065786973747360681b604482015260640161047a565b600060405180606001604052808560ff1681526020018460ff1681526020018360ff168152509050604051806101000160405280336001600160a01b03168152602001878152602001868152602001828152602001600081526020016000815260200142815260200160011515815250600080336001600160a01b03166001600160a01b03168152602001908152602001600020600088815260200190815260200160002060008201518160000160006101000a8154816001600160a01b0302191690836001600160a01b03160217905550602082015181600101556040820151816002015560608201518160030160008201518160000160006101000a81548160ff021916908360ff16021790555060208201518160000160016101000a81548160ff021916908360ff16021790555060408201518160000160026101000a81548160ff021916908360ff16021790555050506080820151816004015560a0820151816005015560c0820151816006015560e08201518160070160006101000a81548160ff02191690831515021790555090505060016000336001600160a01b03166001600160a01b0316815260200190815260200160002086908060018154018082558091505060019003906000526020600020016000909190919091505585336001600160a01b03167f1bd96959e90b965ecd58bac046f8d20f293cf639656f8987da258ccffc32436187604051610f8591815260200190565b60405180910390a3505050505050565b6005546001600160a01b03163314610fbf5760405162461bcd60e51b815260040161047a906116bb565b6001600160a01b0381166110075760405162461bcd60e51b815260206004820152600f60248201526e496e76616c6964206164647265737360881b604482015260640161047a565b600580546001600160a01b0319166001600160a01b0392909216919091179055565b6005546001600160a01b031633146110535760405162461bcd60e51b815260040161047a906116bb565b600680546001600160a01b0319166001600160a01b0392909216919091179055565b600382015460009060649061108d9060ff1684611976565b611097919061198d565b60038401549091506000906064906110b790610100900460ff1685611976565b6110c1919061198d565b60038501549091506000906064906110e29062010000900460ff1686611976565b6110ec919061198d565b905082156111d1576002546040516000916001600160a01b03169085908381818185875af1925050503d8060008114611141576040519150601f19603f3d011682016040523d82523d6000602084013e611146565b606091505b505090508061118d5760405162461bcd60e51b815260206004820152601360248201527210585d994819195c1bdcda5d0819985a5b1959606a1b604482015260640161047a565b6002546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b81156112be576003546040516000916001600160a01b03169084908381818185875af1925050503d8060008114611224576040519150601f19603f3d011682016040523d82523d6000602084013e611229565b606091505b505090508061127a5760405162461bcd60e51b815260206004820152601760248201527f436f6d706f756e64206465706f736974206661696c6564000000000000000000604482015260640161047a565b6003546040518481526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b80156113a4576004546040516000916001600160a01b03169083908381818185875af1925050503d8060008114611311576040519150601f19603f3d011682016040523d82523d6000602084013e611316565b606091505b50509050806113605760405162461bcd60e51b8152602060048201526016602482015275155b9a5cddd85c0819195c1bdcda5d0819985a5b195960521b604482015260640161047a565b6004546040518381526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b5050505050565b60405180610100016040528060006001600160a01b0316815260200160008152602001600081526020016114026040518060600160405280600060ff168152602001600060ff168152602001600060ff1681525090565b81526020016000815260200160008152602001600081526020016000151581525090565b6001600160a01b038116811461143b57600080fd5b50565b803561144981611426565b919050565b60008060008060008060a0878903121561146757600080fd5b863561147281611426565b955060208701359450604087013567ffffffffffffffff8082111561149657600080fd5b90880190610120828b0312156114ab57600080fd5b909450606088013590808211156114c157600080fd5b818901915089601f8301126114d557600080fd5b8135818111156114e457600080fd5b8a60208285010111156114f657600080fd5b60208301955080945050505061150e6080880161143e565b90509295509295509295565b60006020828403121561152c57600080fd5b5035919050565b6000806040838503121561154657600080fd5b823561155181611426565b946020939093013593505050565b81516001600160a01b0316815260208083015190820152604080830151908201526060808301516101408301916115b89084018260ff815116825260ff602082015116602083015260ff60408201511660408301525050565b50608083015160c083015260a083015160e083015260c083015161010083015260e0830151151561012083015292915050565b6000602082840312156115fd57600080fd5b813561160881611426565b9392505050565b6020808252825182820181905260009190848201906040850190845b818110156116475783518352928401929184019160010161162b565b50909695505050505050565b803560ff8116811461144957600080fd5b600080600080600060a0868803121561167c57600080fd5b853594506020860135935061169360408701611653565b92506116a160608701611653565b91506116af60808701611653565b90509295509295909350565b6020808252600a908201526927b7363c9037bbb732b960b11b604082015260600190565b6020808252600e908201526d27379030b1ba34bb3290383630b760911b604082015260600190565b803565ffffffffffff8116811461144957600080fd5b6000808335601e1984360301811261173457600080fd5b830160208101925035905067ffffffffffffffff81111561175457600080fd5b80360382131561176357600080fd5b9250929050565b81835281816020850137506000828201602090810191909152601f909101601f19169091010190565b600061012082356117a381611426565b6001600160a01b031684526117ba6020840161143e565b6001600160a01b031660208501526117d46040840161143e565b6001600160a01b031660408501526117ee6060840161143e565b6001600160a01b0316606085015261180860808401611707565b65ffffffffffff16608085015261182160a08401611707565b65ffffffffffff1660a085015261183a60c08401611707565b65ffffffffffff1660c085015260e083810135908501526101006118608185018561171d565b8383880152611872848801828461176a565b979650505050505050565b6020815260006116086020830184611793565b6000602082840312156118a257600080fd5b8151801515811461160857600080fd5b6040815260006118c56040830186611793565b82810360208401526118d881858761176a565b9695505050505050565b6040815260006118f56040830185611793565b905060018060a01b03831660208301529392505050565b634e487b7160e01b600052601160045260246000fd5b8082018082111561094a5761094a61190c565b6020808252600e908201526d2737ba10383630b71037bbb732b960911b604082015260600190565b60ff818116838216019081111561094a5761094a61190c565b808202811582820484141761094a5761094a61190c565b6000826119aa57634e487b7160e01b600052601260045260246000fd5b50049056fea264697066735822122002051417ac0adc0126bc9d7487e6ec5e66cc20c44212d525df2f200f6d58d58464736f6c63430008140033",
+  "deployedBytecode": "0x6080604052600436106101025760003560e01c80638da5cb5b11610095578063e4b6054011610064578063e4b60540146103a3578063f1e4d3b2146103d0578063f2fde38b146103f0578063f457ae1914610410578063f69e20461461043057600080fd5b80638da5cb5b1461031557806390840cd514610335578063b35876e714610355578063cff979a61461037557600080fd5b806380d6664c116100d157806380d6664c146101ad578063819faf7b146101cd578063831820f0146101ed57806383589fde146102f557600080fd5b80632681f7e41461010e57806352cd407f1461014b578063538389221461016d57806368c2fe991461018057600080fd5b3661010957005b600080fd5b34801561011a57600080fd5b5060045461012e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b34801561015757600080fd5b5061016b61016636600461144e565b610450565b005b61016b61017b36600461151a565b6107b4565b34801561018c57600080fd5b506101a061019b366004611533565b610894565b604051610142919061155f565b3480156101b957600080fd5b5061016b6101c836600461151a565b610950565b3480156101d957600080fd5b5060025461012e906001600160a01b031681565b3480156101f957600080fd5b5061028c610208366004611533565b60006020818152928152604080822084529181528190208054600182015460028301548451606081018652600385015460ff808216835261010082048116988301989098526201000090048716958101959095526004840154600585015460068601546007909601546001600160a01b039095169793969295929491939092911688565b604080516001600160a01b0390991689526020808a019890985288810196909652845160ff90811660608a01529685015187166080890152939094015190941660a086015260c085015260e0840192909252610100830152151561012082015261014001610142565b34801561030157600080fd5b5061016b61031036600461151a565b6109f2565b34801561032157600080fd5b5060055461012e906001600160a01b031681565b34801561034157600080fd5b5060065461012e906001600160a01b031681565b34801561036157600080fd5b5061016b61037036600461151a565b610a94565b34801561038157600080fd5b50610395610390366004611533565b610ba7565b604051908152602001610142565b3480156103af57600080fd5b506103c36103be3660046115eb565b610bd8565b604051610142919061160f565b3480156103dc57600080fd5b5061016b6103eb366004611664565b610c44565b3480156103fc57600080fd5b5061016b61040b3660046115eb565b610f95565b34801561041c57600080fd5b5061016b61042b3660046115eb565b611029565b34801561043c57600080fd5b5060035461012e906001600160a01b031681565b6005546001600160a01b031633146104835760405162461bcd60e51b815260040161047a906116bb565b60405180910390fd5b6001600160a01b0386166000908152602081815260408083208884529091529020600781015460ff166104c85760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b038881169116146105145760405162461bcd60e51b815260206004820152600d60248201526c0aae6cae440dad2e6dac2e8c6d609b1b604482015260640161047a565b6001600160a01b03871661052b60208701876115eb565b6001600160a01b0316146105815760405162461bcd60e51b815260206004820152601b60248201527f5065726d697373696f6e206163636f756e74206d69736d617463680000000000604482015260640161047a565b3361059260408701602088016115eb565b6001600160a01b0316146105db5760405162461bcd60e51b815260206004820152601060248201526f0a6e0cadcc8cae440dad2e6dac2e8c6d60831b604482015260640161047a565b600654604051639e16b82f60e01b81526001600160a01b0390911690639e16b82f9061060b90889060040161187d565b602060405180830381865afa158015610628573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061064c9190611890565b6106c95760065460405163b9ffc8e160e01b81526001600160a01b039091169063b9ffc8e190610684908890889088906004016118b2565b6020604051808303816000875af11580156106a3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106c79190611890565b505b60065460405163415a973560e01b81526001600160a01b039091169063415a9735906106fb90889086906004016118e2565b600060405180830381600087803b15801561071557600080fd5b505af1158015610729573d6000803e3d6000fd5b5050505061074081836001600160a01b0316611075565b816001600160a01b031681600401600082825461075d9190611922565b90915550504260058201556040516001600160a01b0383811682528791908916907fcf75a80a22cde0edcefe708f860e644c73eb8921aac7890f3bec010eef965f649060200160405180910390a350505050505050565b336000908152602081815260408083208484529091529020600781015460ff166107f05760405162461bcd60e51b815260040161047a906116df565b600034116108305760405162461bcd60e51b815260206004820152600d60248201526c09aeae6e840e6cadcc8408aa89609b1b604482015260640161047a565b61083a8134611075565b3481600401600082825461084e9190611922565b9091555050426005820155604051348152829033907fcf75a80a22cde0edcefe708f860e644c73eb8921aac7890f3bec010eef965f649060200160405180910390a35050565b61089c6113ab565b506001600160a01b038083166000908152602081815260408083208584528252918290208251610100808201855282549095168152600182015481840152600282015481850152835160608181018652600384015460ff8082168452978104881695830195909552620100009094048616948101949094529182019290925260048201546080820152600582015460a0820152600682015460c0820152600790910154909116151560e08201525b92915050565b336000908152602081815260408083208484529091529020600781015460ff1661098c5760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b031633146109b55760405162461bcd60e51b815260040161047a90611935565b60078101805460ff19169055604051829033907f3ee9ca28321072883626157ba61d1c97dbb201875f5b65ab4d78f77fc316a31c90600090a35050565b336000908152602081815260408083208484529091529020600781015460ff16610a2e5760405162461bcd60e51b815260040161047a906116df565b80546001600160a01b03163314610a575760405162461bcd60e51b815260040161047a90611935565b60078101805460ff19169055604051829033907f0f0575314e9a6c84f2bff03b4ceae4b5d4ca0fe92bff1acb153f13e5e36db71f90600090a35050565b3360009081526020818152604080832084845290915290206006810154610af35760405162461bcd60e51b8152602060048201526013602482015272141b185b88191bd95cc81b9bdd08195e1a5cdd606a1b604482015260640161047a565b80546001600160a01b03163314610b1c5760405162461bcd60e51b815260040161047a90611935565b600781015460ff1615610b675760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792061637469766560681b604482015260640161047a565b60078101805460ff19166001179055604051829033907f64bf4125848d90010c24cc30cdbcb050b80009b859b208313f6259c7dc12d99490600090a35050565b60016020528160005260406000208181548110610bc357600080fd5b90600052602060002001600091509150505481565b6001600160a01b038116600090815260016020908152604091829020805483518184028101840190945280845260609392830182828015610c3857602002820191906000526020600020905b815481526020019060010190808311610c24575b50505050509050919050565b60008411610ca25760405162461bcd60e51b815260206004820152602560248201527f4d6f6e74686c7920616d6f756e74206d75737420626520677265617465722074604482015264068616e20360dc1b606482015260840161047a565b80610cad838561195d565b610cb7919061195d565b60ff16606414610d095760405162461bcd60e51b815260206004820152601860248201527f50657263656e7473206d7573742073756d20746f203130300000000000000000604482015260640161047a565b3360009081526020818152604080832088845290915290206006015415610d685760405162461bcd60e51b8152602060048201526013602482015272506c616e20616c72656164792065786973747360681b604482015260640161047a565b600060405180606001604052808560ff1681526020018460ff1681526020018360ff168152509050604051806101000160405280336001600160a01b03168152602001878152602001868152602001828152602001600081526020016000815260200142815260200160011515815250600080336001600160a01b03166001600160a01b03168152602001908152602001600020600088815260200190815260200160002060008201518160000160006101000a8154816001600160a01b0302191690836001600160a01b03160217905550602082015181600101556040820151816002015560608201518160030160008201518160000160006101000a81548160ff021916908360ff16021790555060208201518160000160016101000a81548160ff021916908360ff16021790555060408201518160000160026101000a81548160ff021916908360ff16021790555050506080820151816004015560a0820151816005015560c0820151816006015560e08201518160070160006101000a81548160ff02191690831515021790555090505060016000336001600160a01b03166001600160a01b0316815260200190815260200160002086908060018154018082558091505060019003906000526020600020016000909190919091505585336001600160a01b03167f1bd96959e90b965ecd58bac046f8d20f293cf639656f8987da258ccffc32436187604051610f8591815260200190565b60405180910390a3505050505050565b6005546001600160a01b03163314610fbf5760405162461bcd60e51b815260040161047a906116bb565b6001600160a01b0381166110075760405162461bcd60e51b815260206004820152600f60248201526e496e76616c6964206164647265737360881b604482015260640161047a565b600580546001600160a01b0319166001600160a01b0392909216919091179055565b6005546001600160a01b031633146110535760405162461bcd60e51b815260040161047a906116bb565b600680546001600160a01b0319166001600160a01b0392909216919091179055565b600382015460009060649061108d9060ff1684611976565b611097919061198d565b60038401549091506000906064906110b790610100900460ff1685611976565b6110c1919061198d565b60038501549091506000906064906110e29062010000900460ff1686611976565b6110ec919061198d565b905082156111d1576002546040516000916001600160a01b03169085908381818185875af1925050503d8060008114611141576040519150601f19603f3d011682016040523d82523d6000602084013e611146565b606091505b505090508061118d5760405162461bcd60e51b815260206004820152601360248201527210585d994819195c1bdcda5d0819985a5b1959606a1b604482015260640161047a565b6002546040518581526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b81156112be576003546040516000916001600160a01b03169084908381818185875af1925050503d8060008114611224576040519150601f19603f3d011682016040523d82523d6000602084013e611229565b606091505b505090508061127a5760405162461bcd60e51b815260206004820152601760248201527f436f6d706f756e64206465706f736974206661696c6564000000000000000000604482015260640161047a565b6003546040518481526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b80156113a4576004546040516000916001600160a01b03169083908381818185875af1925050503d8060008114611311576040519150601f19603f3d011682016040523d82523d6000602084013e611316565b606091505b50509050806113605760405162461bcd60e51b8152602060048201526016602482015275155b9a5cddd85c0819195c1bdcda5d0819985a5b195960521b604482015260640161047a565b6004546040518381526001600160a01b03909116907f870f86672db2c7b197484fa0218e97fe38eb7c89fd39ed2c4c910734c66182f89060200160405180910390a2505b5050505050565b60405180610100016040528060006001600160a01b0316815260200160008152602001600081526020016114026040518060600160405280600060ff168152602001600060ff168152602001600060ff1681525090565b81526020016000815260200160008152602001600081526020016000151581525090565b6001600160a01b038116811461143b57600080fd5b50565b803561144981611426565b919050565b60008060008060008060a0878903121561146757600080fd5b863561147281611426565b955060208701359450604087013567ffffffffffffffff8082111561149657600080fd5b90880190610120828b0312156114ab57600080fd5b909450606088013590808211156114c157600080fd5b818901915089601f8301126114d557600080fd5b8135818111156114e457600080fd5b8a60208285010111156114f657600080fd5b60208301955080945050505061150e6080880161143e565b90509295509295509295565b60006020828403121561152c57600080fd5b5035919050565b6000806040838503121561154657600080fd5b823561155181611426565b946020939093013593505050565b81516001600160a01b0316815260208083015190820152604080830151908201526060808301516101408301916115b89084018260ff815116825260ff602082015116602083015260ff60408201511660408301525050565b50608083015160c083015260a083015160e083015260c083015161010083015260e0830151151561012083015292915050565b6000602082840312156115fd57600080fd5b813561160881611426565b9392505050565b6020808252825182820181905260009190848201906040850190845b818110156116475783518352928401929184019160010161162b565b50909695505050505050565b803560ff8116811461144957600080fd5b600080600080600060a0868803121561167c57600080fd5b853594506020860135935061169360408701611653565b92506116a160608701611653565b91506116af60808701611653565b90509295509295909350565b6020808252600a908201526927b7363c9037bbb732b960b11b604082015260600190565b6020808252600e908201526d27379030b1ba34bb3290383630b760911b604082015260600190565b803565ffffffffffff8116811461144957600080fd5b6000808335601e1984360301811261173457600080fd5b830160208101925035905067ffffffffffffffff81111561175457600080fd5b80360382131561176357600080fd5b9250929050565b81835281816020850137506000828201602090810191909152601f909101601f19169091010190565b600061012082356117a381611426565b6001600160a01b031684526117ba6020840161143e565b6001600160a01b031660208501526117d46040840161143e565b6001600160a01b031660408501526117ee6060840161143e565b6001600160a01b0316606085015261180860808401611707565b65ffffffffffff16608085015261182160a08401611707565b65ffffffffffff1660a085015261183a60c08401611707565b65ffffffffffff1660c085015260e083810135908501526101006118608185018561171d565b8383880152611872848801828461176a565b979650505050505050565b6020815260006116086020830184611793565b6000602082840312156118a257600080fd5b8151801515811461160857600080fd5b6040815260006118c56040830186611793565b82810360208401526118d881858761176a565b9695505050505050565b6040815260006118f56040830185611793565b905060018060a01b03831660208301529392505050565b634e487b7160e01b600052601160045260246000fd5b8082018082111561094a5761094a61190c565b6020808252600e908201526d2737ba10383630b71037bbb732b960911b604082015260600190565b60ff818116838216019081111561094a5761094a61190c565b808202811582820484141761094a5761094a61190c565b6000826119aa57634e487b7160e01b600052601260045260246000fd5b50049056fea264697066735822122002051417ac0adc0126bc9d7487e6ec5e66cc20c44212d525df2f200f6d58d58464736f6c63430008140033",
   "devdoc": {
+    "details": "Uses Coinbase's SpendPermissionManager for automated deposits",
     "kind": "dev",
-    "methods": {},
+    "methods": {
+      "createSIPPlan(uint256,uint256,uint8,uint8,uint8)": {
+        "details": "This is called by the frontend when user confirms their plan",
+        "params": {
+          "aavePercent": "Percentage allocation to Aave",
+          "compoundPercent": "Percentage allocation to Compound",
+          "monthlyAmount": "Monthly investment amount in wei",
+          "planId": "The database plan ID for reference",
+          "uniswapPercent": "Percentage allocation to Uniswap"
+        }
+      },
+      "depositDirect(uint256)": {
+        "details": "Alternative method for direct deposits without spend permissions",
+        "params": {
+          "planId": "The plan ID to fund"
+        }
+      },
+      "executeDeposit(address,uint256,(address,address,address,uint160,uint48,uint48,uint48,uint256,bytes),bytes,uint160)": {
+        "details": "Called by the server wallet (spender) using the stored spend permission",
+        "params": {
+          "amount": "Amount to deposit in this execution",
+          "planId": "The plan ID to execute",
+          "signature": "The user's signature for the spend permission",
+          "spendPermission": "The spend permission struct",
+          "user": "The user whose SIP is being executed"
+        }
+      }
+    },
+    "title": "LumoContract",
     "version": 1
   },
   "userdoc": {
     "kind": "user",
-    "methods": {},
+    "methods": {
+      "cancelPlan(uint256)": {
+        "notice": "Cancel a SIP plan"
+      },
+      "createSIPPlan(uint256,uint256,uint8,uint8,uint8)": {
+        "notice": "Create a new SIP plan for a user"
+      },
+      "depositDirect(uint256)": {
+        "notice": "Execute a deposit with direct ETH transfer (for users who send ETH directly)"
+      },
+      "executeDeposit(address,uint256,(address,address,address,uint160,uint48,uint48,uint48,uint256,bytes),bytes,uint160)": {
+        "notice": "Execute a deposit for a user's SIP plan using spend permission"
+      },
+      "getPlan(address,uint256)": {
+        "notice": "Get a user's SIP plan"
+      },
+      "getUserPlanIds(address)": {
+        "notice": "Get all plan IDs for a user"
+      },
+      "pausePlan(uint256)": {
+        "notice": "Pause a SIP plan"
+      },
+      "resumePlan(uint256)": {
+        "notice": "Resume a paused SIP plan"
+      },
+      "setSpendPermissionManager(address)": {
+        "notice": "Update the SpendPermissionManager address"
+      },
+      "transferOwnership(address)": {
+        "notice": "Transfer ownership"
+      }
+    },
+    "notice": "Main contract for Lumo SIP (Systematic Investment Plan) DeFi automation",
     "version": 1
   },
   "storageLayout": {
     "storage": [
       {
-        "astId": 31,
+        "astId": 35,
         "contract": "contracts/LumoContract.sol:LumoContract",
         "label": "userPlans",
         "offset": 0,
         "slot": "0",
-        "type": "t_mapping(t_address,t_struct(SIPPlan)26_storage)"
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(SIPPlan)28_storage))"
       },
       {
-        "astId": 33,
+        "astId": 40,
         "contract": "contracts/LumoContract.sol:LumoContract",
-        "label": "aave",
+        "label": "userPlanIds",
         "offset": 0,
         "slot": "1",
-        "type": "t_address"
+        "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)"
       },
       {
-        "astId": 35,
+        "astId": 42,
         "contract": "contracts/LumoContract.sol:LumoContract",
-        "label": "compound",
+        "label": "aave",
         "offset": 0,
         "slot": "2",
         "type": "t_address"
       },
       {
-        "astId": 37,
+        "astId": 44,
         "contract": "contracts/LumoContract.sol:LumoContract",
-        "label": "uniswap",
+        "label": "compound",
         "offset": 0,
         "slot": "3",
         "type": "t_address"
       },
       {
-        "astId": 39,
+        "astId": 46,
         "contract": "contracts/LumoContract.sol:LumoContract",
-        "label": "owner",
+        "label": "uniswap",
         "offset": 0,
         "slot": "4",
         "type": "t_address"
+      },
+      {
+        "astId": 48,
+        "contract": "contracts/LumoContract.sol:LumoContract",
+        "label": "owner",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 51,
+        "contract": "contracts/LumoContract.sol:LumoContract",
+        "label": "spendPermissionManager",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_contract(ISpendPermissionManager)801"
       }
     ],
     "types": {
@@ -480,24 +779,49 @@
         "label": "address",
         "numberOfBytes": "20"
       },
+      "t_array(t_uint256)dyn_storage": {
+        "base": "t_uint256",
+        "encoding": "dynamic_array",
+        "label": "uint256[]",
+        "numberOfBytes": "32"
+      },
       "t_bool": {
         "encoding": "inplace",
         "label": "bool",
         "numberOfBytes": "1"
       },
-      "t_mapping(t_address,t_struct(SIPPlan)26_storage)": {
+      "t_contract(ISpendPermissionManager)801": {
+        "encoding": "inplace",
+        "label": "contract ISpendPermissionManager",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
         "encoding": "mapping",
         "key": "t_address",
-        "label": "mapping(address => struct LumoContract.SIPPlan)",
+        "label": "mapping(address => uint256[])",
         "numberOfBytes": "32",
-        "value": "t_struct(SIPPlan)26_storage"
+        "value": "t_array(t_uint256)dyn_storage"
       },
-      "t_struct(SIPPlan)26_storage": {
+      "t_mapping(t_address,t_mapping(t_uint256,t_struct(SIPPlan)28_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => struct LumoContract.SIPPlan))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_struct(SIPPlan)28_storage)"
+      },
+      "t_mapping(t_uint256,t_struct(SIPPlan)28_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct LumoContract.SIPPlan)",
+        "numberOfBytes": "32",
+        "value": "t_struct(SIPPlan)28_storage"
+      },
+      "t_struct(SIPPlan)28_storage": {
         "encoding": "inplace",
         "label": "struct LumoContract.SIPPlan",
         "members": [
           {
-            "astId": 10,
+            "astId": 12,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "user",
             "offset": 0,
@@ -505,15 +829,15 @@
             "type": "t_address"
           },
           {
-            "astId": 12,
+            "astId": 14,
             "contract": "contracts/LumoContract.sol:LumoContract",
-            "label": "totalAmount",
+            "label": "planId",
             "offset": 0,
             "slot": "1",
             "type": "t_uint256"
           },
           {
-            "astId": 14,
+            "astId": 16,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "monthlyAmount",
             "offset": 0,
@@ -521,31 +845,31 @@
             "type": "t_uint256"
           },
           {
-            "astId": 16,
-            "contract": "contracts/LumoContract.sol:LumoContract",
-            "label": "duration",
-            "offset": 0,
-            "slot": "3",
-            "type": "t_uint256"
-          },
-          {
             "astId": 19,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "strategy",
             "offset": 0,
-            "slot": "4",
-            "type": "t_struct(Strategy)8_storage"
+            "slot": "3",
+            "type": "t_struct(Strategy)10_storage"
           },
           {
             "astId": 21,
             "contract": "contracts/LumoContract.sol:LumoContract",
-            "label": "deposited",
+            "label": "totalDeposited",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 23,
+            "contract": "contracts/LumoContract.sol:LumoContract",
+            "label": "lastDepositTime",
             "offset": 0,
             "slot": "5",
             "type": "t_uint256"
           },
           {
-            "astId": 23,
+            "astId": 25,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "createdAt",
             "offset": 0,
@@ -553,7 +877,7 @@
             "type": "t_uint256"
           },
           {
-            "astId": 25,
+            "astId": 27,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "active",
             "offset": 0,
@@ -563,12 +887,12 @@
         ],
         "numberOfBytes": "256"
       },
-      "t_struct(Strategy)8_storage": {
+      "t_struct(Strategy)10_storage": {
         "encoding": "inplace",
         "label": "struct LumoContract.Strategy",
         "members": [
           {
-            "astId": 3,
+            "astId": 5,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "aavePercent",
             "offset": 0,
@@ -576,7 +900,7 @@
             "type": "t_uint8"
           },
           {
-            "astId": 5,
+            "astId": 7,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "compoundPercent",
             "offset": 1,
@@ -584,7 +908,7 @@
             "type": "t_uint8"
           },
           {
-            "astId": 7,
+            "astId": 9,
             "contract": "contracts/LumoContract.sol:LumoContract",
             "label": "uniswapPercent",
             "offset": 2,
