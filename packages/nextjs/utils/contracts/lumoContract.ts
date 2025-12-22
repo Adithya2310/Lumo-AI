@@ -1,22 +1,52 @@
 /**
  * Lumo Contract utilities for server-side interactions
+ * Updated to work with the new LumoContract that supports multiple plans
+ * and SpendPermissionManager integration
  */
 import { createPublicClient, createWalletClient, http, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 import deployedContracts from "~~/contracts/deployedContracts";
 
-// Contract addresses on Sepolia
-export const LUMO_CONTRACT_ADDRESS = deployedContracts[11155111].LumoContract.address;
-export const LUMO_CONTRACT_ABI = deployedContracts[11155111].LumoContract.abi;
+// SpendPermissionManager contract address on Base Sepolia
+export const SPEND_PERMISSION_MANAGER_ADDRESS = "0xf85210B21cC50302F477BA56686d2019dC9b67Ad";
+
+// Native ETH address constant (ERC-7528)
+export const NATIVE_ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+// Contract addresses - Try to use deployed contracts, fallback to placeholder
+let LUMO_CONTRACT_ADDRESS: `0x${string}`;
+let LUMO_CONTRACT_ABI: readonly unknown[];
+
+try {
+  // Use Base Sepolia (chain ID 84532)
+  const contracts = deployedContracts as Record<
+    number,
+    Record<string, { address: `0x${string}`; abi: readonly unknown[] }>
+  >;
+  if (contracts[84532]?.LumoContract) {
+    LUMO_CONTRACT_ADDRESS = contracts[84532].LumoContract.address;
+    LUMO_CONTRACT_ABI = contracts[84532].LumoContract.abi;
+  } else {
+    // Fallback - you'll need to deploy the contract first
+    LUMO_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
+    LUMO_CONTRACT_ABI = [];
+    console.warn("LumoContract not found in deployedContracts. Please deploy first.");
+  }
+} catch {
+  LUMO_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
+  LUMO_CONTRACT_ABI = [];
+}
+
+export { LUMO_CONTRACT_ADDRESS, LUMO_CONTRACT_ABI };
 
 // Public client for reading contract state
 export const publicClient = createPublicClient({
-  chain: sepolia,
+  chain: baseSepolia,
   transport: http(
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
-      ? `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
-      : "https://rpc.sepolia.org",
+      ? `https://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+      : "https://sepolia.base.org",
   ),
 });
 
@@ -29,27 +59,47 @@ export const getServerWalletClient = () => {
     throw new Error("SERVER_WALLET_PRIVATE_KEY not configured");
   }
 
-  const account = privateKeyToAccount(privateKey as `0x${string}`);
+  const formattedKey = (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`;
+  const account = privateKeyToAccount(formattedKey);
 
   return createWalletClient({
     account,
-    chain: sepolia,
+    chain: baseSepolia,
     transport: http(
       process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
-        ? `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
-        : "https://rpc.sepolia.org",
+        ? `https://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+        : "https://sepolia.base.org",
     ),
   });
 };
 
-// Get user's SIP plan from the contract
-export const getUserPlan = async (userAddress: `0x${string}`) => {
+// Get the server wallet address
+export const getServerWalletAddress = (): `0x${string}` | null => {
+  const privateKey = process.env.SERVER_WALLET_PRIVATE_KEY;
+  if (!privateKey) return null;
+
   try {
+    // Ensure the private key starts with 0x
+    const formattedKey: `0x${string}` = (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`;
+    const account = privateKeyToAccount(formattedKey);
+    return account.address as `0x${string}`;
+  } catch {
+    return null;
+  }
+};
+
+// Get user's SIP plan from the contract
+export const getUserPlan = async (userAddress: `0x${string}`, planId: bigint) => {
+  try {
+    if (LUMO_CONTRACT_ADDRESS === ("0x0000000000000000000000000000000000000000" as `0x${string}`)) {
+      throw new Error("LumoContract not deployed");
+    }
+
     const plan = await publicClient.readContract({
       address: LUMO_CONTRACT_ADDRESS,
-      abi: LUMO_CONTRACT_ABI,
+      abi: LUMO_CONTRACT_ABI as readonly unknown[],
       functionName: "getPlan",
-      args: [userAddress],
+      args: [userAddress, planId],
     });
 
     return plan;
@@ -59,56 +109,158 @@ export const getUserPlan = async (userAddress: `0x${string}`) => {
   }
 };
 
+// Get all plan IDs for a user
+export const getUserPlanIds = async (userAddress: `0x${string}`) => {
+  try {
+    if (LUMO_CONTRACT_ADDRESS === ("0x0000000000000000000000000000000000000000" as `0x${string}`)) {
+      throw new Error("LumoContract not deployed");
+    }
+
+    const planIds = await publicClient.readContract({
+      address: LUMO_CONTRACT_ADDRESS,
+      abi: LUMO_CONTRACT_ABI as readonly unknown[],
+      functionName: "getUserPlanIds",
+      args: [userAddress],
+    });
+
+    return planIds;
+  } catch (error) {
+    console.error("Error fetching user plan IDs:", error);
+    throw error;
+  }
+};
+
 // SIP Plan interface matching the contract structure
 export interface SIPPlanInput {
-  totalAmount: string; // in ETH
+  planId: number; // Database plan ID
   monthlyAmount: string; // in ETH
-  duration: number; // in months
   aavePercent: number;
   compoundPercent: number;
   uniswapPercent: number;
 }
 
-// Create a SIP plan (called from the user's wallet, not server)
-// This is for reference - the actual call should come from the client
+// Create parameters for calling createSIPPlan on the contract
 export const createSIPPlanParams = (plan: SIPPlanInput) => {
-  const totalAmountWei = parseEther(plan.totalAmount);
   const monthlyAmountWei = parseEther(plan.monthlyAmount);
 
   return {
     address: LUMO_CONTRACT_ADDRESS,
     abi: LUMO_CONTRACT_ABI,
     functionName: "createSIPPlan" as const,
-    args: [
-      totalAmountWei,
-      monthlyAmountWei,
-      BigInt(plan.duration),
-      plan.aavePercent,
-      plan.compoundPercent,
-      plan.uniswapPercent,
-    ] as const,
-    value: totalAmountWei,
+    args: [BigInt(plan.planId), monthlyAmountWei, plan.aavePercent, plan.compoundPercent, plan.uniswapPercent] as const,
   };
 };
 
-// Execute SIP deposit using spend permission
-// This uses the server wallet to spend from the user's wallet via spend permission
-export const executeSIPDeposit = async (userAddress: `0x${string}`, amount: string) => {
-  // Note: This is a placeholder for the actual spend permission execution
-  // The actual implementation would use the CDP SDK to spend from the user's wallet
-  // using the granted spend permission
+// SpendPermission struct matching the SpendPermissionManager contract
+export interface SpendPermission {
+  account: `0x${string}`;
+  spender: `0x${string}`;
+  token: `0x${string}`;
+  allowance: bigint;
+  period: number;
+  start: number;
+  end: number;
+  salt: bigint;
+  extraData: `0x${string}`;
+}
 
-  console.log(`Executing SIP deposit for ${userAddress}: ${amount} ETH`);
-
-  // TODO: Implement actual spend permission execution using CDP SDK
-  // This would involve:
-  // 1. Calling the spend permission manager to transfer funds from user to server
-  // 2. Server then calls the LumoContract to create/fund the SIP
-
+// Create a spend permission object from database values
+export const createSpendPermissionFromDB = (permission: {
+  user_address: string;
+  spender_address: string;
+  token: string;
+  allowance: string;
+  period: number;
+  start_time: number;
+  end_time: number;
+  salt: string;
+}): SpendPermission => {
   return {
-    success: true,
-    message: "SIP deposit execution placeholder",
-    userAddress,
-    amount,
+    account: permission.user_address as `0x${string}`,
+    spender: permission.spender_address as `0x${string}`,
+    token: (permission.token || NATIVE_ETH) as `0x${string}`,
+    allowance: BigInt(permission.allowance),
+    period: permission.period,
+    start: permission.start_time,
+    end: permission.end_time,
+    salt: BigInt(permission.salt),
+    extraData: "0x" as `0x${string}`,
   };
+};
+
+// SpendPermissionManager ABI (for read operations)
+export const SPEND_PERMISSION_MANAGER_ABI = [
+  {
+    name: "isApproved",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "spendPermission",
+        type: "tuple",
+        components: [
+          { name: "account", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "token", type: "address" },
+          { name: "allowance", type: "uint160" },
+          { name: "period", type: "uint48" },
+          { name: "start", type: "uint48" },
+          { name: "end", type: "uint48" },
+          { name: "salt", type: "uint256" },
+          { name: "extraData", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    name: "getLastUpdatedPeriod",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "spendPermission",
+        type: "tuple",
+        components: [
+          { name: "account", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "token", type: "address" },
+          { name: "allowance", type: "uint160" },
+          { name: "period", type: "uint48" },
+          { name: "start", type: "uint48" },
+          { name: "end", type: "uint48" },
+          { name: "salt", type: "uint256" },
+          { name: "extraData", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "start", type: "uint48" },
+          { name: "end", type: "uint48" },
+          { name: "spend", type: "uint160" },
+        ],
+      },
+    ],
+  },
+] as const;
+
+// Check if a spend permission is approved on-chain
+export const isSpendPermissionApproved = async (spendPermission: SpendPermission): Promise<boolean> => {
+  try {
+    const result = await publicClient.readContract({
+      address: SPEND_PERMISSION_MANAGER_ADDRESS as `0x${string}`,
+      abi: SPEND_PERMISSION_MANAGER_ABI,
+      functionName: "isApproved",
+
+      args: [spendPermission] as any,
+    });
+
+    return result as boolean;
+  } catch (error) {
+    console.error("Error checking spend permission approval:", error);
+    return false;
+  }
 };

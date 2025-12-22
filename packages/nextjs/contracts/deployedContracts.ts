@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     LumoContract: {
-      address: "0x85f0De2CC7b9307F3866b4bb3cCd3D0204f3Ac74",
+      address: "0x24f204aF1D1e4e4F47c2E632942936110D0A4333",
       abi: [
         {
           inputs: [
@@ -26,6 +26,11 @@ const deployedContracts = {
               name: "_uniswap",
               type: "address",
             },
+            {
+              internalType: "address",
+              name: "_spendPermissionManager",
+              type: "address",
+            },
           ],
           stateMutability: "nonpayable",
           type: "constructor",
@@ -38,6 +43,12 @@ const deployedContracts = {
               internalType: "address",
               name: "user",
               type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
             },
             {
               indexed: false,
@@ -78,9 +89,9 @@ const deployedContracts = {
               type: "address",
             },
             {
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
-              name: "refundAmount",
+              name: "planId",
               type: "uint256",
             },
           ],
@@ -96,6 +107,12 @@ const deployedContracts = {
               name: "user",
               type: "address",
             },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
           ],
           name: "PlanPaused",
           type: "event",
@@ -108,6 +125,12 @@ const deployedContracts = {
               internalType: "address",
               name: "user",
               type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
             },
           ],
           name: "PlanResumed",
@@ -123,15 +146,15 @@ const deployedContracts = {
               type: "address",
             },
             {
-              indexed: false,
+              indexed: true,
               internalType: "uint256",
-              name: "totalAmount",
+              name: "planId",
               type: "uint256",
             },
             {
               indexed: false,
               internalType: "uint256",
-              name: "duration",
+              name: "monthlyAmount",
               type: "uint256",
             },
           ],
@@ -152,7 +175,13 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [],
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+          ],
           name: "cancelPlan",
           outputs: [],
           stateMutability: "nonpayable",
@@ -175,17 +204,12 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "uint256",
-              name: "totalAmount",
+              name: "planId",
               type: "uint256",
             },
             {
               internalType: "uint256",
               name: "monthlyAmount",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "duration",
               type: "uint256",
             },
             {
@@ -206,6 +230,19 @@ const deployedContracts = {
           ],
           name: "createSIPPlan",
           outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+          ],
+          name: "depositDirect",
+          outputs: [],
           stateMutability: "payable",
           type: "function",
         },
@@ -215,6 +252,91 @@ const deployedContracts = {
               internalType: "address",
               name: "user",
               type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "token",
+                  type: "address",
+                },
+                {
+                  internalType: "uint160",
+                  name: "allowance",
+                  type: "uint160",
+                },
+                {
+                  internalType: "uint48",
+                  name: "period",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint48",
+                  name: "start",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint48",
+                  name: "end",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint256",
+                  name: "salt",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes",
+                  name: "extraData",
+                  type: "bytes",
+                },
+              ],
+              internalType: "struct ISpendPermissionManager.SpendPermission",
+              name: "spendPermission",
+              type: "tuple",
+            },
+            {
+              internalType: "bytes",
+              name: "signature",
+              type: "bytes",
+            },
+            {
+              internalType: "uint160",
+              name: "amount",
+              type: "uint160",
+            },
+          ],
+          name: "executeDeposit",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
             },
           ],
           name: "getPlan",
@@ -228,17 +350,12 @@ const deployedContracts = {
                 },
                 {
                   internalType: "uint256",
-                  name: "totalAmount",
+                  name: "planId",
                   type: "uint256",
                 },
                 {
                   internalType: "uint256",
                   name: "monthlyAmount",
-                  type: "uint256",
-                },
-                {
-                  internalType: "uint256",
-                  name: "duration",
                   type: "uint256",
                 },
                 {
@@ -265,7 +382,12 @@ const deployedContracts = {
                 },
                 {
                   internalType: "uint256",
-                  name: "deposited",
+                  name: "totalDeposited",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "lastDepositTime",
                   type: "uint256",
                 },
                 {
@@ -288,6 +410,25 @@ const deployedContracts = {
           type: "function",
         },
         {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+          ],
+          name: "getUserPlanIds",
+          outputs: [
+            {
+              internalType: "uint256[]",
+              name: "",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
           inputs: [],
           name: "owner",
           outputs: [
@@ -301,15 +442,66 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [],
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+          ],
           name: "pausePlan",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
         },
         {
-          inputs: [],
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+          ],
           name: "resumePlan",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_spendPermissionManager",
+              type: "address",
+            },
+          ],
+          name: "setSpendPermissionManager",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "spendPermissionManager",
+          outputs: [
+            {
+              internalType: "contract ISpendPermissionManager",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -334,6 +526,35 @@ const deployedContracts = {
               name: "",
               type: "address",
             },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "userPlanIds",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
           ],
           name: "userPlans",
           outputs: [
@@ -344,17 +565,12 @@ const deployedContracts = {
             },
             {
               internalType: "uint256",
-              name: "totalAmount",
+              name: "planId",
               type: "uint256",
             },
             {
               internalType: "uint256",
               name: "monthlyAmount",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "duration",
               type: "uint256",
             },
             {
@@ -381,7 +597,12 @@ const deployedContracts = {
             },
             {
               internalType: "uint256",
-              name: "deposited",
+              name: "totalDeposited",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "lastDepositTime",
               type: "uint256",
             },
             {
@@ -404,7 +625,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 35278804,
+      deployedOnBlock: 35301167,
     },
     MockAave: {
       address: "0xF2182c3A96C755E07205B49C2C7B12e6db1f21F9",

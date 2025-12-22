@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { parseEther } from "viem";
 import { baseSepolia } from "viem/chains";
-import { useAccount, useChainId, useSignTypedData } from "wagmi";
+import { useAccount, useChainId, useSignTypedData, useWriteContract } from "wagmi";
+import { LUMO_CONTRACT_ABI, LUMO_CONTRACT_ADDRESS } from "~~/utils/contracts/lumoContract";
 
 interface SIPPlan {
   goal: string;
@@ -47,12 +48,13 @@ interface SpendPermission {
 }
 
 export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationModalProps) => {
-  const [step, setStep] = useState<"review" | "signing" | "submitting" | "success">("review");
+  const [step, setStep] = useState<"review" | "signing" | "creating" | "submitting" | "success">("review");
   const [error, setError] = useState<string | null>(null);
 
   const { address } = useAccount();
   const chainId = useChainId();
   const { signTypedDataAsync } = useSignTypedData();
+  const { writeContractAsync } = useWriteContract();
 
   // Generate a random salt for uniqueness
   const generateSalt = () => {
@@ -117,10 +119,12 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
 
       console.log("Spend permission signed:", signature);
 
-      setStep("submitting");
+      // Now create the SIP plan on-chain
+      setStep("creating");
+      console.log("Creating SIP plan on-chain...");
 
-      // Save the SIP plan and signed permission to the server
-      const response = await fetch("/api/sip/create", {
+      // First, save to database to get the plan ID
+      const dbResponse = await fetch("/api/sip/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -142,10 +146,32 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to save SIP plan");
+      if (!dbResponse.ok) {
+        const data = await dbResponse.json();
+        throw new Error(data.error || "Failed to save SIP plan to database");
       }
+
+      const dbData = await dbResponse.json();
+      const planId = dbData.plan?.id;
+
+      if (!planId) {
+        throw new Error("Failed to get plan ID from database");
+      }
+
+      console.log("Plan saved to database with ID:", planId);
+
+      // Now call the smart contract to create the plan on-chain
+      setStep("submitting");
+      console.log("Calling createSIPPlan on contract...");
+
+      const txHash = await writeContractAsync({
+        address: LUMO_CONTRACT_ADDRESS,
+        abi: LUMO_CONTRACT_ABI as readonly unknown[],
+        functionName: "createSIPPlan",
+        args: [BigInt(planId), sipAmount, plan.strategy.aave, plan.strategy.compound, plan.strategy.uniswap],
+      });
+
+      console.log("Contract transaction hash:", txHash);
 
       setStep("success");
 
@@ -154,8 +180,8 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
         onConfirm();
       }, 2000);
     } catch (err: any) {
-      console.error("Failed to create spend permission:", err);
-      setError(err.message || "Failed to create spend permission");
+      console.error("Failed to create SIP plan:", err);
+      setError(err.message || "Failed to create SIP plan");
       setStep("review");
     }
   };
@@ -188,7 +214,8 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
               <h2 className="text-xl font-bold text-white">
                 {step === "review" && "Confirm Your SIP Plan"}
                 {step === "signing" && "Sign Permission"}
-                {step === "submitting" && "Setting Up..."}
+                {step === "creating" && "Creating Plan..."}
+                {step === "submitting" && "Finalizing..."}
                 {step === "success" && "Success!"}
               </h2>
               <button onClick={onCancel} className="text-gray-400 hover:text-white transition-colors">
@@ -314,13 +341,23 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
               </div>
             )}
 
+            {step === "creating" && (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  <div className="loading loading-spinner loading-lg text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Saving to Database</h3>
+                <p className="text-gray-400 text-sm">Storing your plan details...</p>
+              </div>
+            )}
+
             {step === "submitting" && (
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-500/20 flex items-center justify-center">
                   <div className="loading loading-spinner loading-lg text-blue-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Setting Up Your SIP</h3>
-                <p className="text-gray-400 text-sm">Saving your investment plan...</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Creating On-Chain</h3>
+                <p className="text-gray-400 text-sm">Submitting transaction to blockchain...</p>
               </div>
             )}
 
