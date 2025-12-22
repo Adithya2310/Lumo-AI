@@ -204,6 +204,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Get the server wallet client
     const walletClient = getServerWalletClient();
 
+    // First, check if the user has enough ETH balance
+    const userBalance = await publicClient.getBalance({ address: userAddress as `0x${string}` });
+    console.log(`User balance: ${formatEther(userBalance)} ETH`);
+
+    if (userBalance < amountWei) {
+      return NextResponse.json(
+        {
+          error: `Insufficient user balance. Required: ${monthlyAmount} ETH, Available: ${formatEther(userBalance)} ETH`,
+          userBalance: formatEther(userBalance),
+          requiredAmount: monthlyAmount,
+        },
+        { status: 400 },
+      );
+    }
+
     // Check if permission is already approved on-chain
     const isApproved = await publicClient.readContract({
       address: SPEND_PERMISSION_MANAGER_ADDRESS,
@@ -211,6 +226,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       functionName: "isApproved",
       args: [spendPermission],
     });
+
+    console.log("Is permission approved on-chain:", isApproved);
 
     let approvalTxHash: string | null = null;
 
@@ -232,16 +249,38 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       console.log("Approval tx hash:", approvalTxHash);
 
       // Wait for approval transaction to be mined
-      await publicClient.waitForTransactionReceipt({ hash: approvalTxHash as `0x${string}` });
+      const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash: approvalTxHash as `0x${string}` });
+      console.log("Approval receipt status:", approvalReceipt.status);
+
+      if (approvalReceipt.status !== "success") {
+        throw new Error("Approval transaction failed");
+      }
     }
+
+    // IMPORTANT: The spend value must not exceed the allowance per period
+    // The allowance is the maximum amount that can be spent within each period
+    const spendValue = amountWei <= spendPermission.allowance ? amountWei : spendPermission.allowance;
+    console.log(`Spend value: ${formatEther(spendValue)} ETH (capped to allowance if needed)`);
 
     // Now execute the spend
     console.log("Executing spend...");
+    console.log("Spend parameters:", {
+      account: spendPermission.account,
+      spender: spendPermission.spender,
+      token: spendPermission.token,
+      allowance: spendPermission.allowance.toString(),
+      period: spendPermission.period,
+      start: spendPermission.start,
+      end: spendPermission.end,
+      salt: spendPermission.salt.toString(),
+      value: spendValue.toString(),
+    });
 
+    // Use writeContract instead of sendTransaction for better error messages
     const spendData = encodeFunctionData({
       abi: SPEND_PERMISSION_MANAGER_ABI,
       functionName: "spend",
-      args: [spendPermission, BigInt(amountWei)],
+      args: [spendPermission, spendValue],
     });
 
     const spendTxHash = await walletClient.sendTransaction({
@@ -255,7 +294,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const receipt = await publicClient.waitForTransactionReceipt({ hash: spendTxHash as `0x${string}` });
 
     if (receipt.status !== "success") {
-      throw new Error("Spend transaction failed");
+      throw new Error(
+        "Spend transaction failed - check if the user account is a Smart Account with spend permissions enabled",
+      );
     }
 
     // Calculate breakdown for each protocol
@@ -263,13 +304,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const strategyCompound = plan.strategy_compound as number;
     const strategyUniswap = plan.strategy_uniswap as number;
 
-    const aaveAmount = (amountWei * BigInt(strategyAave)) / 100n;
-    const compoundAmount = (amountWei * BigInt(strategyCompound)) / 100n;
-    const uniswapAmount = (amountWei * BigInt(strategyUniswap)) / 100n;
+    const aaveAmount = (spendValue * BigInt(strategyAave)) / 100n;
+    const compoundAmount = (spendValue * BigInt(strategyCompound)) / 100n;
+    const uniswapAmount = (spendValue * BigInt(strategyUniswap)) / 100n;
 
     // Update the plan in database
     const currentTotalDeposited = (plan.total_deposited as string) || "0";
-    const newTotalDeposited = parseEther(currentTotalDeposited) + amountWei;
+    const newTotalDeposited = parseEther(currentTotalDeposited) + spendValue;
     const newTotalDepositedStr = formatEther(newTotalDeposited);
     const nowIso = now.toISOString();
 
@@ -281,7 +322,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Record the execution
     await turso.execute({
       sql: `INSERT INTO sip_executions (plan_id, user_address, amount, tx_hash, status, executed_at) VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [planId, userAddress, monthlyAmount, spendTxHash, "success", nowIso],
+      args: [planId, userAddress, formatEther(spendValue), spendTxHash, "success", nowIso],
     });
 
     return NextResponse.json({
@@ -290,7 +331,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       execution: {
         planId,
         userAddress,
-        amount: monthlyAmount,
+        amount: formatEther(spendValue),
         breakdown: {
           aave: formatEther(aaveAmount),
           compound: formatEther(compoundAmount),

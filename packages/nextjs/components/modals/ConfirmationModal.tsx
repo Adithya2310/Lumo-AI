@@ -175,6 +175,28 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
 
       setStep("success");
 
+      // Schedule automatic SIP execution after 60 seconds to test spend permission
+      console.log(`Scheduling automatic SIP execution for plan #${planId} in 60 seconds...`);
+      setTimeout(async () => {
+        try {
+          console.log(`Triggering automatic SIP execution for plan #${planId}...`);
+          const executeResponse = await fetch(`/api/sip/execute/${planId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          const executeData = await executeResponse.json();
+
+          if (executeResponse.ok) {
+            console.log("✅ SIP execution successful:", executeData);
+          } else {
+            console.error("❌ SIP execution failed:", executeData);
+          }
+        } catch (execError) {
+          console.error("❌ Error executing SIP:", execError);
+        }
+      }, 60000); // 60 seconds
+
       // Wait a moment then redirect
       setTimeout(() => {
         onConfirm();
