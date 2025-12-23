@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { NextPage } from "next";
 
@@ -237,7 +238,7 @@ const Home: NextPage = () => {
       <footer className="py-12 px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">✨</span>
+            <Image src="/Logo.png" alt="Lumo AI" width={32} height={32} className="w-8 h-8" />
             <span className="text-xl font-bold text-white">Lumo AI</span>
           </div>
           <div className="flex gap-8 text-gray-400 text-sm">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { ChatMessage, MessageType } from "./ChatMessage";
 import { useAccount } from "wagmi";
 import { CreateSIPModal } from "~~/components/modals/CreateSIPModal";
@@ -567,7 +568,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
           {isTyping && (
             <div className="flex items-center gap-3 p-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
-                <span className="text-lg">✨</span>
+                <Image src="/Logo.png" alt="Lumo AI" width={24} height={24} className="w-6 h-6" />
               </div>
               <div className="flex gap-1">
                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -589,7 +590,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
         {/* Input Area */}
         {!isInputDisabled() && (
           <div className="border-t border-white/5 pt-4">
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <input
                 type="text"
                 value={input}
@@ -601,9 +602,9 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim()}
-                className="btn btn-lumo-primary px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn btn-lumo-primary px-6 py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

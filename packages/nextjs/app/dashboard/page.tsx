@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatEther } from "viem";
@@ -426,7 +427,7 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">✨</span>
+            <Image src="/Logo.png" alt="Lumo AI" width={32} height={32} className="w-8 h-8" />
             <span className="text-xl font-bold text-white">Lumo AI</span>
           </Link>
 

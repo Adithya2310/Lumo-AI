@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccount, useDisconnect } from "wagmi";
@@ -106,7 +107,7 @@ export default function AppPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">✨</span>
+            <Image src="/Logo.png" alt="Lumo AI" width={36} height={36} className="w-12 h-12" />
             <span className="text-xl font-bold text-white">Lumo AI</span>
           </Link>
 
