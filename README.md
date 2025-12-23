@@ -1,87 +1,87 @@
 # Lumo AI
 
-Lumo AI is an on-chain, pay-per-use AI investment platform that automates long-term wealth building across multiple DeFi protocols, including lending, liquidity, and yield strategies. It converts user goals into optimized allocations and executes them on-chain through smart contracts.
+Lumo AI is an on-chain, AI-powered DeFAI investment platform that automates long-term wealth building across multiple DeFi protocols, including lending, liquidity, and yield strategies. It converts user goals into optimized allocations and executes them on-chain through smart contracts.
 
-Instead of subscriptions or API keys, Lumo AI uses x402 to enable direct, verifiable micropayments between AI agents—ensuring every strategy update and decision is paid for in real time, transparently and on-chain.
+Using Coinbase's Spend Permissions, Lumo enables secure, controlled automation—letting users grant limited, revocable spending permissions for both SIP investments (USDC) and AI agent payments (ETH).
 
 ---
 
 ## 🧠 What Problem Does Lumo AI Solve?
 
-Most AI services today rely on:
+Most DeFi platforms today require:
 
-* Monthly subscriptions
-* API keys
-* Centralized payment infrastructure
-
-This makes it impossible for **AI agents to independently purchase services from other AI agents**.
+* Manual intervention for recurring investments
+* Complex multi-step transactions
+* Constant monitoring of allocations
+* Trust in custodial solutions
 
 Lumo AI removes these limitations by enabling:
 
-* Pay-per-query AI access
-* On-chain, verifiable micropayments
-* Fully autonomous agent-to-agent interactions
+* Automated Systematic Investment Plans (SIPs) using USDC
+* AI-powered strategy optimization with ETH agent payments
+* On-chain, verifiable transactions via spend permissions
+* Fully autonomous execution with user-defined limits
 
 ---
 
-## ⚡ Why x402 Is the Core of Lumo AI
+## ⚡ How Coinbase Spend Permissions Power Lumo AI
 
-**x402** enables AI agents to pay each other directly using crypto micropayments.
+**Spend Permissions** enable controlled automation without giving up custody.
 
 In Lumo AI:
 
-* Every AI request is a **paid request**
-* Every AI response is **payment-gated**
-* Every transaction is **verifiable on-chain**
+* Users grant **two separate spend permissions**:
+  * **SIP Permission (USDC)**: For automated monthly investments
+  * **Agent Permission (ETH)**: For AI strategy optimization fees
+* Every transaction is **amount-limited and time-bound**
+* Permissions are **revocable at any time**
 
 There are:
 
-* ❌ No API keys
-* ❌ No subscriptions
+* ❌ No unlimited approvals
+* ❌ No custodial risk
 * ❌ No trusted intermediaries
 
-Just **value-for-value intelligence exchange**.
+Just **secure, autonomous DeFi investing**.
 
 ---
 
-## 🔁 How x402 Works in Lumo AI
+## 🔁 How Lumo AI Works
 
-1. A user interacts with Lumo AI to request an investment strategy.
-2. Lumo’s requesting agent initiates an **x402 payment** (e.g. `0.001 USDC`).
-3. The payment is routed through an **x402 facilitator**.
-4. The Expert AI agent:
-
-   * Verifies the payment
-   * Only responds **after confirmation**
-5. The strategy is returned and executed on-chain.
+1. User connects a Coinbase CDP Smart Wallet
+2. User interacts with the AI chat interface to configure their investment plan
+3. AI generates an optimized strategy across Aave, Compound, and Uniswap
+4. User grants spend permissions:
+   * **SIP Permission**: USDC allowance for monthly investments
+   * **Agent Permission**: ETH allowance for AI optimization fees
+5. Lumo's server executes SIPs automatically using cron jobs
+6. (Optional) Monthly rebalancing via AI agent
 
 This ensures:
 
-* No free queries
-* No unpaid AI responses
-* Fully trustless coordination between agents
+* Predictable, automated investments
+* Transparent fee structure
+* User maintains full control
 
 ---
 
-## 💸 DeFAI + x402 in Action
+## 💸 DeFAI in Action
 
 Lumo AI combines:
 
-* **x402** → for real-time agent-to-agent micropayments
-* **DeFAI (Decentralized Finance + AI)** → for executing AI-generated investment strategies
+* **DeFAI (Decentralized Finance + AI)** → for AI-generated, optimized investment strategies
+* **Coinbase Spend Permissions** → for secure, controlled automation
 
 User goals (car, house, education) are translated into allocations across multiple DeFi platforms.
 
 Users can choose:
 
-* ✅ **Monthly AI rebalancing**
-
-  * AI agents re-evaluate strategies every SIP cycle
-  * x402 payments occur monthly
-* ❌ **Fixed strategy execution**
-
+* ✅ **Fixed strategy execution**
   * Same allocation reused every SIP
   * No additional AI spend after setup
+* ✅ **Monthly AI rebalancing**
+  * AI agents re-evaluate strategies each SIP cycle
+  * ETH agent payments occur monthly
 
 All execution happens automatically after one-time approval.
 
@@ -90,23 +90,35 @@ All execution happens automatically after one-time approval.
 ## 🏗️ High-Level Architecture
 
 * **UI**: Goal-based AI chat + dashboard
-* **Smart Wallets**: Automate payments and execution
-* **Next.js Backend**: Orchestrates agents and x402 flows
-* **Smart Contracts**: Execute DeFi strategies
-* **x402**: Payment rail between AI agents
+* **Smart Wallets**: Coinbase CDP for spend permissions
+* **Next.js Backend**: Orchestrates SIPs and cron-based execution
+* **Smart Contracts**: Execute DeFi strategies on Base Sepolia
+* **Spend Permissions**: Controlled automation layer
 
 ---
 
 ## 🚀 Why This Matters
 
-Lumo AI is not just an investment app.
+Lumo AI demonstrates:
 
-It demonstrates:
+* DeFAI as a practical investment strategy
+* Spend permissions enabling trustless automation
+* AI-powered allocation without custody risk
+* Cron-based execution for hands-free investing
 
-* Pay-per-use AI as a protocol
-* Intelligence as an on-chain commodity
-* AI agents forming real economic relationships
-* x402 as the missing payment layer for autonomous systems
+---
+
+## 🔮 Future Scope
+
+### x402 Protocol Integration
+
+In future versions, Lumo AI may integrate the **x402 protocol** for:
+
+* Pay-per-use AI micropayments
+* Agent-to-agent payment coordination
+* Real-time, on-chain verification of AI service payments
+
+This would enable a fully decentralized AI marketplace where agents autonomously pay each other for specialized services.
 
 ---
 
