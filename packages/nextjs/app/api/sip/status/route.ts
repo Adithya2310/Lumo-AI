@@ -46,14 +46,25 @@ export async function GET(request: NextRequest) {
       args: [userAddress.toLowerCase()],
     });
 
-    // Calculate next execution time (60 seconds interval for testing)
-    const EXECUTION_INTERVAL_MS = 60 * 1000;
+    // Get the execution interval from the spend permission period
+    // Default to 30 days (2592000 seconds) if no permission found
+    let executionIntervalMs = 2592000 * 1000; // Default: 30 days in ms
+
+    if (permissionsResult.rows.length > 0) {
+      const permission = permissionsResult.rows[0];
+      const periodSeconds = permission.period as number;
+      if (periodSeconds > 0) {
+        executionIntervalMs = periodSeconds * 1000;
+      }
+    }
+
+    // Calculate next execution time based on the permission period
     let nextExecution = null;
     if (plan.last_execution) {
       const lastExecution = new Date(plan.last_execution as string);
-      nextExecution = new Date(lastExecution.getTime() + EXECUTION_INTERVAL_MS).toISOString();
+      nextExecution = new Date(lastExecution.getTime() + executionIntervalMs).toISOString();
     } else {
-      nextExecution = new Date(Date.now() + EXECUTION_INTERVAL_MS).toISOString();
+      nextExecution = new Date(Date.now() + executionIntervalMs).toISOString();
     }
 
     // Format the response
@@ -77,6 +88,7 @@ export async function GET(request: NextRequest) {
 
     const formattedExecutions = executionsResult.rows.map(row => ({
       id: row.id,
+      planId: row.plan_id as number,
       amount: row.amount as string,
       txHash: row.tx_hash as string | null,
       status: row.status as string,

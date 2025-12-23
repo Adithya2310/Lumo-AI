@@ -79,7 +79,7 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
         spender: SPENDER_ADDRESS as `0x${string}`,
         token: NATIVE_ETH, // Native ETH
         allowance: sipAmount,
-        period: 60, // 60 seconds for testing (should be 2592000 for monthly in production)
+        period: 2592000, // 30 days in seconds for monthly SIP
         start: now,
         end: now + 31536000, // Valid for 1 year
         salt: generateSalt(),
@@ -175,27 +175,8 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
 
       setStep("success");
 
-      // Schedule automatic SIP execution after 60 seconds to test spend permission
-      console.log(`Scheduling automatic SIP execution for plan #${planId} in 60 seconds...`);
-      setTimeout(async () => {
-        try {
-          console.log(`Triggering automatic SIP execution for plan #${planId}...`);
-          const executeResponse = await fetch(`/api/sip/execute/${planId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          });
-
-          const executeData = await executeResponse.json();
-
-          if (executeResponse.ok) {
-            console.log("✅ SIP execution successful:", executeData);
-          } else {
-            console.error("❌ SIP execution failed:", executeData);
-          }
-        } catch (execError) {
-          console.error("❌ Error executing SIP:", execError);
-        }
-      }, 60000); // 60 seconds
+      // SIP execution will be handled by the cron job based on the permission period
+      // stored in the database (default: monthly)
 
       // Wait a moment then redirect
       setTimeout(() => {
@@ -325,8 +306,8 @@ export const ConfirmationModal = ({ plan, onConfirm, onCancel }: ConfirmationMod
                     <div>
                       <h4 className="text-sm font-medium text-purple-300 mb-1">Spend Permission Required</h4>
                       <p className="text-xs text-gray-400">
-                        You&apos;ll sign a spend permission allowing Lumo to invest up to {plan.monthlyAmount} ETH every
-                        minute (for testing). This permission is limited and can be revoked anytime.
+                        You&apos;ll sign a spend permission allowing Lumo to invest up to {plan.monthlyAmount} ETH
+                        monthly. This permission is limited and can be revoked anytime.
                       </p>
                     </div>
                   </div>

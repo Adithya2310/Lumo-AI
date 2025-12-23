@@ -9,6 +9,7 @@ import {
   SpendPermissionModal,
   serializeSpendPermission,
 } from "~~/components/modals/SpendPermissionModal";
+import { callFinancialPlanner } from "~~/services/financialPlannerClient";
 
 // Stored permission data for database
 interface StoredPermission {
@@ -48,8 +49,8 @@ interface Message {
   isAction?: boolean; // For action prompts like permission requests
 }
 
-// Generate strategy based on risk level
-const generateStrategy = (riskLevel: "low" | "medium" | "high") => {
+// Generate fallback strategy based on risk level (used when AI call fails)
+const generateFallbackStrategy = (riskLevel: "low" | "medium" | "high") => {
   switch (riskLevel) {
     case "low":
       return { aave: 50, compound: 40, uniswap: 10 };
@@ -69,6 +70,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
   const [step, setStep] = useState<ConversationStep>("greeting");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
 
   // Modal states
   const [showSIPPermissionModal, setShowSIPPermissionModal] = useState(false);
@@ -81,6 +83,13 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
 
   // Created plan ID from database
   const [createdPlanId, setCreatedPlanId] = useState<number | null>(null);
+
+  // AI-generated strategy (from Financial Planner)
+  const [aiGeneratedStrategy, setAiGeneratedStrategy] = useState<{
+    aave: number;
+    compound: number;
+    uniswap: number;
+  } | null>(null);
 
   // Collected data
   const [planData, setPlanData] = useState({
@@ -98,6 +107,9 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
 
   // Initial greeting
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     setTimeout(() => {
       addAIMessage(
         "👋 Welcome to Lumo AI! I'm here to help you create a personalized DeFi investment plan.\n\nLet's start by understanding your goals. What are you investing for?",
@@ -162,8 +174,8 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
         setStep("amount");
         setTimeout(() => {
           addAIMessage(
-            `Great choice! "${userInput}" is an excellent goal. 🎯\n\nNow, how much would you like to invest monthly? This will be your SIP (Systematic Investment Plan) amount.`,
-            ["0.01 ETH", "0.05 ETH", "0.1 ETH", "0.5 ETH"],
+            `Great choice! "${userInput}" is an excellent goal. 🎯\n\nNow, how much would you like to invest monthly? This will be your SIP (Systematic Investment Plan) amount in USDC.`,
+            ["0.01 USDC", "0.05 USDC", "0.1 USDC", "0.5 USDC"],
           );
         }, 500);
         break;
@@ -176,7 +188,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
           addAIMessage(
             `Perfect! ${userInput} per month is a solid commitment. 💪\n\n` +
               `To enable automated monthly investments, I need you to grant a **SIP Spend Permission**.\n\n` +
-              `This allows Lumo to automatically invest up to ${amount} ETH per period on your behalf.`,
+              `This allows Lumo to automatically invest up to ${amount} USDC per period on your behalf.`,
             ["Grant SIP Permission"],
             true,
           );
@@ -200,15 +212,13 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
 
         setPlanData(prev => ({ ...prev, riskLevel }));
 
-        const strategy = generateStrategy(riskLevel);
+        // Ask for AI budget first, don't show strategy yet
         setTimeout(() => {
           addAIMessage(
-            `Understood! Based on your ${riskLevel} risk preference, I recommend:\n\n` +
-              `• **Aave (Lending):** ${strategy.aave}%\n` +
-              `• **Compound (Interest):** ${strategy.compound}%\n` +
-              `• **Uniswap (Liquidity):** ${strategy.uniswap}%\n\n` +
-              `Finally, what's your monthly budget for AI agent fees? This covers strategy optimization and rebalancing.`,
-            ["0.001 ETH", "0.005 ETH", "0.01 ETH", "No AI rebalancing"],
+            `Understood! You've selected **${riskLevel}** risk tolerance.\n\n` +
+              `To generate an optimized AI strategy for your goals, I'll use our DeFi AI Agent.\n\n` +
+              `What's your monthly budget for AI agent fees? (paid in ETH)`,
+            ["0.001 ETH", "0.005 ETH", "0.01 ETH", "No AI - Use default strategy"],
           );
         }, 500);
         setStep("ai_limit");
@@ -227,7 +237,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
             addAIMessage(
               `Great! You've allocated ${aiLimit} ETH for AI agent services.\n\n` +
                 `To enable AI-powered strategy optimization, I need you to grant an **Agent Spend Permission**.\n\n` +
-                `This allows the Lumo AI Agent to spend up to ${aiLimit} ETH per period for rebalancing and optimization.`,
+                `This allows the Lumo AI Agent to pay for strategy calls (up to ${aiLimit} ETH per period).`,
               ["Grant Agent Permission"],
               true,
             );
@@ -242,6 +252,20 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
       case "agent_permission":
         // User clicked "Grant Agent Permission"
         setShowAgentPermissionModal(true);
+        break;
+
+      case "creating_sip":
+        // User clicked "Create SIP Plan" - save to database first
+        if (userInput.toLowerCase().includes("create sip")) {
+          createSIPPlan(!!agentPermission);
+        }
+        break;
+
+      case "complete":
+        // User clicked "Create SIP On-Chain" - show the blockchain modal
+        if (userInput.toLowerCase().includes("on-chain") || userInput.toLowerCase().includes("create sip")) {
+          handleCreateSIPClick();
+        }
         break;
 
       default:
@@ -260,7 +284,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
       type: "sip",
     });
 
-    addSystemMessage(`SIP spend permission granted for ${planData.monthlyAmount} ETH per period.`);
+    addSystemMessage(`SIP spend permission granted for ${planData.monthlyAmount} USDC per period.`);
 
     setStep("sip_permission_confirmed");
     setTimeout(() => {
@@ -272,8 +296,8 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
     }, 1000);
   };
 
-  // Handle Agent permission granted
-  const handleAgentPermissionGranted = (permission: any, signature: string) => {
+  // Handle Agent permission granted - pays agent with ETH, then calls AI for strategy
+  const handleAgentPermissionGranted = async (permission: any, signature: string) => {
     setShowAgentPermissionModal(false);
 
     const storedPermission = serializeSpendPermission(permission, signature);
@@ -284,11 +308,110 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
 
     addSystemMessage(`AI Agent spend permission granted for ${planData.aiSpendLimit} ETH per period.`);
 
+    // Set step to processing
     setStep("agent_permission_confirmed");
-    setTimeout(() => {
+
+    try {
+      // Call Financial Planner API with agent payment info
+      // This will pay EXPERT_AGENT_ADDRESS, then generate the strategy
+      const aiResponse = await callFinancialPlanner({
+        amount: parseFloat(planData.monthlyAmount) || 10,
+        timeHorizon: "12 months",
+        riskTolerance: planData.riskLevel,
+        goal: planData.goal,
+        // Pass agent payment info for pay-before-strategy flow
+        agentPayment: address
+          ? {
+              userAddress: address,
+              permission: storedPermission,
+              paymentAmount: planData.aiSpendLimit || "0.001",
+            }
+          : undefined,
+      });
+
+      // Show combined payment + strategy result
+      if (aiResponse.paymentInfo?.paid && aiResponse.success) {
+        const txHash = aiResponse.paymentInfo.txHash;
+        const txLink = txHash ? `https://sepolia.basescan.org/tx/${txHash}` : null;
+        addSystemMessage(
+          `Paid ${aiResponse.paymentInfo.amount} ETH to AI Agent` +
+            (txLink ? ` • [View Transaction](${txLink})` : "") +
+            ` • Strategy generated!`,
+        );
+      } else if (aiResponse.paymentInfo?.paid) {
+        const txHash = aiResponse.paymentInfo.txHash;
+        const txLink = txHash ? `https://sepolia.basescan.org/tx/${txHash}` : null;
+        addSystemMessage(
+          `💸 Paid ${aiResponse.paymentInfo.amount} ETH to AI Agent` +
+            (txLink ? ` • [View Transaction](${txLink})` : ""),
+        );
+      } else if (aiResponse.success) {
+        addSystemMessage(`AI strategy generated successfully`);
+      }
+
+      // Display the AI-generated strategy
+      if (aiResponse.success && aiResponse.strategy) {
+        const strategy = aiResponse.strategy;
+        setAiGeneratedStrategy(strategy); // Save for SIP creation
+
+        setTimeout(() => {
+          addAIMessage(
+            `🎯 **AI-Optimized Strategy Generated!**\n\n` +
+              `Based on your ${planData.riskLevel} risk profile and ${planData.goal} goal, here's your personalized allocation:\n\n` +
+              `• **Aave (Lending):** ${strategy.aave}%\n` +
+              `• **Compound (Interest):** ${strategy.compound}%\n` +
+              `• **Uniswap (Liquidity):** ${strategy.uniswap}%\n\n` +
+              (aiResponse.reasoning ? `_${aiResponse.reasoning}_\n\n` : "") +
+              (aiResponse.paymentInfo?.paid
+                ? `✅ **Agent Payment:** ${aiResponse.paymentInfo.amount} ETH paid\n\n`
+                : "") +
+              `Ready to create your SIP plan?`,
+            ["Create SIP Plan"],
+            true,
+          );
+        }, 500);
+
+        setStep("creating_sip");
+      } else {
+        // Fallback if AI call fails
+        console.warn("AI call failed, using fallback:", aiResponse.error);
+        const fallbackStrategy = generateFallbackStrategy(planData.riskLevel);
+        setAiGeneratedStrategy(fallbackStrategy); // Save for SIP creation
+
+        setTimeout(() => {
+          addAIMessage(
+            `📊 **Default Strategy Applied**\n\n` +
+              `Based on your ${planData.riskLevel} risk preference:\n\n` +
+              `• **Aave (Lending):** ${fallbackStrategy.aave}%\n` +
+              `• **Compound (Interest):** ${fallbackStrategy.compound}%\n` +
+              `• **Uniswap (Liquidity):** ${fallbackStrategy.uniswap}%\n\n` +
+              `Ready to create your SIP plan?`,
+            ["Create SIP Plan"],
+            true,
+          );
+        }, 500);
+
+        setStep("creating_sip");
+      }
+    } catch (error: any) {
+      console.error("Error in agent flow:", error);
+      addSystemMessage(`⚠️ Error: ${error.message}. Using default strategy.`);
+
+      const fallbackStrategy = generateFallbackStrategy(planData.riskLevel);
+      setAiGeneratedStrategy(fallbackStrategy); // Save for SIP creation
+      setTimeout(() => {
+        addAIMessage(
+          `📊 **Default Strategy Applied**\n\n` +
+            `• **Aave (Lending):** ${fallbackStrategy.aave}%\n` +
+            `• **Compound (Interest):** ${fallbackStrategy.compound}%\n` +
+            `• **Uniswap (Liquidity):** ${fallbackStrategy.uniswap}%\n\n` +
+            `Ready to create your SIP plan?`,
+          ["Create SIP Plan"],
+          true,
+        );
+      }, 500);
       setStep("creating_sip");
-      createSIPPlan(true);
-    }, 1000);
+    }
   };
 
   // Create SIP plan (stored off-chain for coordination)
@@ -301,24 +424,8 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
     // Silently prepare the plan - no need to show backend details
 
     try {
-      const strategy = generateStrategy(planData.riskLevel);
-
-      // Prepare permissions array
-      const permissions: any[] = [];
-
-      if (sipPermission) {
-        permissions.push({
-          ...sipPermission,
-          permission_type: "sip",
-        });
-      }
-
-      if (hasAgentPermission && agentPermission) {
-        permissions.push({
-          ...agentPermission,
-          permission_type: "agent",
-        });
-      }
+      // Use AI-generated strategy from state, or fallback if not available
+      const strategy = aiGeneratedStrategy || generateFallbackStrategy(planData.riskLevel);
 
       // Create SIP plan in database
       const response = await fetch("/api/sip/create", {
@@ -372,7 +479,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
           `🎉 Your plan is ready!\n\n` +
             `**Summary:**\n` +
             `• Goal: ${planData.goal}\n` +
-            `• Monthly SIP: ${planData.monthlyAmount} ETH\n` +
+            `• Monthly SIP: ${planData.monthlyAmount} USDC\n` +
             `• Risk Level: ${planData.riskLevel.charAt(0).toUpperCase() + planData.riskLevel.slice(1)}\n` +
             `• AI Rebalancing: ${planData.rebalancing ? "Enabled" : "Disabled"}\n\n` +
             `Now let's register your SIP plan on the blockchain to make it official!`,
@@ -535,7 +642,7 @@ export const ChatContainer = ({ onPlanComplete }: ChatContainerProps) => {
         <CreateSIPModal
           planId={createdPlanId}
           monthlyAmount={planData.monthlyAmount}
-          strategy={generateStrategy(planData.riskLevel)}
+          strategy={generateFallbackStrategy(planData.riskLevel)}
           onSuccess={handleSIPCreated}
           onCancel={() => setShowCreateSIPModal(false)}
         />

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatEther } from "viem";
-import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import deployedContracts from "~~/contracts/deployedContracts";
 import { useCopyToClipboard } from "~~/hooks/scaffold-eth";
 
 interface SIPPlan {
@@ -22,6 +23,19 @@ interface SIPPlan {
   lastExecution: string | null;
 }
 
+interface SIPExecution {
+  id: number;
+  planId: number;
+  amount: string;
+  txHash: string | null;
+  status: "pending" | "success" | "failed";
+  errorMessage: string | null;
+  executedAt: string;
+}
+
+// Get contract config for Base Sepolia
+const lumoContract = deployedContracts[84532]?.LumoContract;
+
 export default function DashboardPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
@@ -32,10 +46,24 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [plans, setPlans] = useState<SIPPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<SIPPlan | null>(null);
+  const [executions, setExecutions] = useState<SIPExecution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeUntilNext, setTimeUntilNext] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [actionLoading, setActionLoading] = useState<"pause" | "resume" | "cancel" | "execute" | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Contract write hooks
+  const { writeContract: writePausePlan, data: pauseHash, isPending: isPausePending } = useWriteContract();
+  const { writeContract: writeResumePlan, data: resumeHash, isPending: isResumePending } = useWriteContract();
+  const { writeContract: writeCancelPlan, data: cancelHash, isPending: isCancelPending } = useWriteContract();
+
+  // Transaction receipt watchers
+  const { isSuccess: isPauseSuccess, isError: isPauseError } = useWaitForTransactionReceipt({ hash: pauseHash });
+  const { isSuccess: isResumeSuccess, isError: isResumeError } = useWaitForTransactionReceipt({ hash: resumeHash });
+  const { isSuccess: isCancelSuccess, isError: isCancelError } = useWaitForTransactionReceipt({ hash: cancelHash });
 
   // Fetch plans from API
   const fetchPlans = useCallback(async () => {
@@ -81,7 +109,12 @@ export default function DashboardPage() {
       const lastExecution = selectedPlan.lastExecution
         ? new Date(selectedPlan.lastExecution)
         : new Date(selectedPlan.createdAt);
-      const nextExecution = new Date(lastExecution.getTime() + 60000); // 60 seconds
+
+      // Use the period from the plan's spend permission (default: 30 days = 2592000 seconds)
+      // The period is stored in the database when the spend permission is created
+      const periodMs = 2592000 * 1000; // 30 days in milliseconds
+
+      const nextExecution = new Date(lastExecution.getTime() + periodMs);
       const now = new Date();
       const diff = nextExecution.getTime() - now.getTime();
 
@@ -90,14 +123,262 @@ export default function DashboardPage() {
         return;
       }
 
-      const seconds = Math.floor(diff / 1000);
-      setTimeUntilNext(`${seconds}s`);
+      // Format the remaining time in days, hours, minutes
+      const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+
+      let timeStr = "";
+      if (days > 0) timeStr += `${days}d `;
+      if (hours > 0) timeStr += `${hours}h `;
+      timeStr += `${minutes}m`;
+
+      setTimeUntilNext(timeStr.trim());
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(updateTimer, 60000); // Update every minute
     return () => clearInterval(interval);
   }, [selectedPlan]);
+
+  // Fetch executions for the selected plan
+  const fetchExecutions = useCallback(async () => {
+    if (!address || !selectedPlan) return;
+
+    try {
+      const response = await fetch(`/api/sip/status?userAddress=${address}`);
+      const data = await response.json();
+
+      if (data.success && data.status?.executions) {
+        // Filter executions for the selected plan
+        const planExecutions = data.status.executions.filter(
+          (exec: any) => exec.planId === selectedPlan.id || !exec.planId,
+        );
+        setExecutions(planExecutions);
+      }
+    } catch (err) {
+      console.error("Failed to fetch executions:", err);
+    }
+  }, [address, selectedPlan]);
+
+  // Fetch executions when selected plan changes
+  useEffect(() => {
+    if (selectedPlan) {
+      fetchExecutions();
+    }
+  }, [selectedPlan, fetchExecutions]);
+
+  // Handle transaction success/error effects
+  useEffect(() => {
+    if (isPauseSuccess && pauseHash && selectedPlan && address) {
+      setActionSuccess("Plan paused successfully!");
+      setActionLoading(null);
+      // Sync with database
+      fetch("/api/sip/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          userAddress: address,
+          action: "pause",
+          txHash: pauseHash,
+        }),
+      }).catch(console.error);
+      // Update local state
+      setSelectedPlan({ ...selectedPlan, active: false });
+      setPlans(plans.map(p => (p.id === selectedPlan.id ? { ...p, active: false } : p)));
+      fetchPlans();
+    }
+    if (isPauseError) {
+      setActionError("Failed to pause plan");
+      setActionLoading(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPauseSuccess, isPauseError, pauseHash]);
+
+  useEffect(() => {
+    if (isResumeSuccess && resumeHash && selectedPlan && address) {
+      setActionSuccess("Plan resumed successfully!");
+      setActionLoading(null);
+      // Sync with database
+      fetch("/api/sip/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          userAddress: address,
+          action: "resume",
+          txHash: resumeHash,
+        }),
+      }).catch(console.error);
+      // Update local state
+      setSelectedPlan({ ...selectedPlan, active: true });
+      setPlans(plans.map(p => (p.id === selectedPlan.id ? { ...p, active: true } : p)));
+      fetchPlans();
+    }
+    if (isResumeError) {
+      setActionError("Failed to resume plan");
+      setActionLoading(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isResumeSuccess, isResumeError, resumeHash]);
+
+  useEffect(() => {
+    if (isCancelSuccess && cancelHash && selectedPlan && address) {
+      setActionSuccess("Plan cancelled successfully!");
+      setActionLoading(null);
+      // Sync with database
+      fetch("/api/sip/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          userAddress: address,
+          action: "cancel",
+          txHash: cancelHash,
+        }),
+      }).catch(console.error);
+      // Update local state
+      setSelectedPlan({ ...selectedPlan, active: false });
+      setPlans(plans.map(p => (p.id === selectedPlan.id ? { ...p, active: false } : p)));
+      fetchPlans();
+    }
+    if (isCancelError) {
+      setActionError("Failed to cancel plan");
+      setActionLoading(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCancelSuccess, isCancelError, cancelHash]);
+
+  // Clear success/error messages after 5 seconds
+  useEffect(() => {
+    if (actionSuccess || actionError) {
+      const timer = setTimeout(() => {
+        setActionSuccess(null);
+        setActionError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [actionSuccess, actionError]);
+
+  // Handle pause plan
+  const handlePausePlan = async () => {
+    if (!selectedPlan || !lumoContract) return;
+
+    setActionLoading("pause");
+    setActionError(null);
+    setActionSuccess(null);
+
+    try {
+      writePausePlan({
+        address: lumoContract.address as `0x${string}`,
+        abi: lumoContract.abi,
+        functionName: "pausePlan",
+        args: [BigInt(selectedPlan.id)],
+      });
+    } catch (err: any) {
+      console.error("Error pausing plan:", err);
+      setActionError(err.message || "Failed to pause plan");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle resume plan
+  const handleResumePlan = async () => {
+    if (!selectedPlan || !lumoContract) return;
+
+    setActionLoading("resume");
+    setActionError(null);
+    setActionSuccess(null);
+
+    try {
+      writeResumePlan({
+        address: lumoContract.address as `0x${string}`,
+        abi: lumoContract.abi,
+        functionName: "resumePlan",
+        args: [BigInt(selectedPlan.id)],
+      });
+    } catch (err: any) {
+      console.error("Error resuming plan:", err);
+      setActionError(err.message || "Failed to resume plan");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle cancel plan
+  const handleCancelPlan = async () => {
+    if (!selectedPlan || !lumoContract) return;
+
+    // Confirm cancellation
+    if (!confirm("Are you sure you want to cancel this plan? This action cannot be undone.")) {
+      return;
+    }
+
+    setActionLoading("cancel");
+    setActionError(null);
+    setActionSuccess(null);
+
+    try {
+      writeCancelPlan({
+        address: lumoContract.address as `0x${string}`,
+        abi: lumoContract.abi,
+        functionName: "cancelPlan",
+        args: [BigInt(selectedPlan.id)],
+      });
+    } catch (err: any) {
+      console.error("Error cancelling plan:", err);
+      setActionError(err.message || "Failed to cancel plan");
+      setActionLoading(null);
+    }
+  };
+
+  // Handle manual SIP execution
+  const handleExecuteSIP = async () => {
+    if (!selectedPlan) return;
+
+    setActionLoading("execute");
+    setActionError(null);
+    setActionSuccess(null);
+
+    try {
+      const response = await fetch(`/api/sip/execute/${selectedPlan.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        let successMessage = "SIP executed successfully!";
+
+        // Show AI rebalancing info if it was applied
+        if (data.execution?.aiRebalancing?.success) {
+          successMessage += ` AI optimized allocation: Aave ${data.execution.strategy.aave}%, Compound ${data.execution.strategy.compound}%, Uniswap ${data.execution.strategy.uniswap}%`;
+        }
+
+        setActionSuccess(successMessage);
+
+        // Update local state with new values
+        setSelectedPlan({
+          ...selectedPlan,
+          totalDeposited: data.execution.totalDeposited,
+          lastExecution: data.execution.executedAt,
+          strategy: data.execution.strategy || selectedPlan.strategy,
+        });
+
+        // Refresh data
+        fetchPlans();
+        fetchExecutions();
+      } else {
+        setActionError(data.error || "Failed to execute SIP");
+      }
+    } catch (err: any) {
+      console.error("Error executing SIP:", err);
+      setActionError(err.message || "Failed to execute SIP");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   // Risk color helper
   const getRiskColor = (level: string) => {
@@ -474,30 +755,288 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* SIP Executions History */}
+                  <div className="card-lumo p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">SIP Executions</h3>
+                      <button
+                        onClick={fetchExecutions}
+                        className="text-sm text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Refresh
+                      </button>
+                    </div>
+
+                    {executions.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-gray-400 text-sm">No executions yet</p>
+                        <p className="text-gray-500 text-xs mt-1">
+                          Your SIP will be executed automatically based on the schedule
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {executions.map(execution => (
+                          <div
+                            key={execution.id}
+                            className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  execution.status === "success"
+                                    ? "bg-green-500/20 text-green-400"
+                                    : execution.status === "pending"
+                                      ? "bg-yellow-500/20 text-yellow-400"
+                                      : "bg-red-500/20 text-red-400"
+                                }`}
+                              >
+                                {execution.status === "success" ? (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : execution.status === "pending" ? (
+                                  <svg
+                                    className="w-4 h-4 animate-spin"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm text-white font-medium">{execution.amount} ETH</div>
+                                <div className="text-xs text-gray-400">
+                                  {new Date(execution.executedAt).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  execution.status === "success"
+                                    ? "bg-green-500/20 text-green-400"
+                                    : execution.status === "pending"
+                                      ? "bg-yellow-500/20 text-yellow-400"
+                                      : "bg-red-500/20 text-red-400"
+                                }`}
+                              >
+                                {execution.status.charAt(0).toUpperCase() + execution.status.slice(1)}
+                              </span>
+                              {execution.txHash && (
+                                <a
+                                  href={`https://sepolia.basescan.org/tx/${execution.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-purple-400 hover:text-purple-300 transition-colors"
+                                  title="View on Basescan"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                    />
+                                  </svg>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Success/Error Messages */}
+                  {(actionSuccess || actionError) && (
+                    <div
+                      className={`p-4 rounded-xl border ${
+                        actionSuccess
+                          ? "bg-green-500/10 border-green-500/20 text-green-400"
+                          : "bg-red-500/10 border-red-500/20 text-red-400"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {actionSuccess ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        )}
+                        <span>{actionSuccess || actionError}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Actions */}
-                  <div className="flex gap-4">
-                    <button className="flex-1 btn btn-lumo-secondary px-6 py-3 rounded-xl flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      {selectedPlan.active ? "Pause Plan" : "Resume Plan"}
+                  <div className="flex flex-col gap-4">
+                    {/* Execute SIP Button - Primary Action */}
+                    <button
+                      onClick={handleExecuteSIP}
+                      disabled={actionLoading === "execute" || !selectedPlan.active}
+                      className="w-full btn btn-lumo-primary px-6 py-4 rounded-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
+                    >
+                      {actionLoading === "execute" ? (
+                        <>
+                          <div className="loading loading-spinner loading-sm" />
+                          Executing SIP...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 10V3L4 14h7v7l9-11h-7z"
+                            />
+                          </svg>
+                          Execute SIP Now (For Testing)
+                          {selectedPlan.rebalancing && (
+                            <span className="text-xs bg-purple-500/30 px-2 py-0.5 rounded-full ml-2">
+                              🤖 AI Rebalancing
+                            </span>
+                          )}
+                        </>
+                      )}
                     </button>
-                    <button className="btn btn-lumo-secondary px-6 py-3 rounded-xl text-red-400 border-red-500/30 hover:bg-red-500/10 flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      Cancel Plan
-                    </button>
+
+                    {/* AI Rebalancing Note */}
+                    {/* {selectedPlan.rebalancing && (
+                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+                        <div className="flex items-center gap-2 text-purple-300 text-sm">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                          <span>
+                            AI will optimize strategy allocation based on current market conditions
+                          </span>
+                        </div>
+                      </div>
+                    )} */}
+
+                    {/* Secondary Actions Row */}
+                    <div className="flex gap-4">
+                      {selectedPlan.active ? (
+                        <button
+                          onClick={handlePausePlan}
+                          disabled={actionLoading === "pause" || isPausePending}
+                          className="flex-1 btn btn-lumo-secondary px-6 py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === "pause" || isPausePending ? (
+                            <div className="loading loading-spinner loading-sm" />
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          )}
+                          Pause Plan
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleResumePlan}
+                          disabled={actionLoading === "resume" || isResumePending}
+                          className="flex-1 btn btn-lumo-secondary px-6 py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === "resume" || isResumePending ? (
+                            <div className="loading loading-spinner loading-sm" />
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          )}
+                          Resume Plan
+                        </button>
+                      )}
+                      <button
+                        onClick={handleCancelPlan}
+                        disabled={actionLoading === "cancel" || isCancelPending || !selectedPlan.active}
+                        className="btn btn-lumo-secondary px-6 py-3 rounded-xl text-red-400 border-red-500/30 hover:bg-red-500/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {actionLoading === "cancel" || isCancelPending ? (
+                          <div className="loading loading-spinner loading-sm" />
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        )}
+                        Cancel Plan
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

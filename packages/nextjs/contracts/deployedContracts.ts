@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     LumoContract: {
-      address: "0x24f204aF1D1e4e4F47c2E632942936110D0A4333",
+      address: "0xaD87faeeC6387250abD265941F2a99f2FFCb3199",
       abi: [
         {
           inputs: [
@@ -46,6 +46,31 @@ const deployedContracts = {
             },
             {
               indexed: true,
+              internalType: "address",
+              name: "agent",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "AgentPaymentExecuted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: true,
               internalType: "uint256",
               name: "planId",
               type: "uint256",
@@ -58,6 +83,25 @@ const deployedContracts = {
             },
           ],
           name: "DepositExecuted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "oldAddress",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newAddress",
+              type: "address",
+            },
+          ],
+          name: "ExpertAgentAddressUpdated",
           type: "event",
         },
         {
@@ -132,6 +176,43 @@ const deployedContracts = {
               name: "planId",
               type: "uint256",
             },
+            {
+              indexed: false,
+              internalType: "uint8",
+              name: "aavePercent",
+              type: "uint8",
+            },
+            {
+              indexed: false,
+              internalType: "uint8",
+              name: "compoundPercent",
+              type: "uint8",
+            },
+            {
+              indexed: false,
+              internalType: "uint8",
+              name: "uniswapPercent",
+              type: "uint8",
+            },
+          ],
+          name: "PlanRebalanced",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
           ],
           name: "PlanResumed",
           type: "event",
@@ -160,6 +241,32 @@ const deployedContracts = {
           ],
           name: "SIPCreated",
           type: "event",
+        },
+        {
+          inputs: [],
+          name: "NATIVE_ETH",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "USDC",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         {
           inputs: [],
@@ -198,6 +305,44 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "monthlyAmount",
+              type: "uint256",
+            },
+            {
+              internalType: "uint8",
+              name: "aavePercent",
+              type: "uint8",
+            },
+            {
+              internalType: "uint8",
+              name: "compoundPercent",
+              type: "uint8",
+            },
+            {
+              internalType: "uint8",
+              name: "uniswapPercent",
+              type: "uint8",
+            },
+            {
+              internalType: "bool",
+              name: "enableRebalancing",
+              type: "bool",
+            },
+          ],
+          name: "createSIPPlan",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -338,6 +483,99 @@ const deployedContracts = {
               name: "planId",
               type: "uint256",
             },
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "token",
+                  type: "address",
+                },
+                {
+                  internalType: "uint160",
+                  name: "allowance",
+                  type: "uint160",
+                },
+                {
+                  internalType: "uint48",
+                  name: "period",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint48",
+                  name: "start",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint48",
+                  name: "end",
+                  type: "uint48",
+                },
+                {
+                  internalType: "uint256",
+                  name: "salt",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes",
+                  name: "extraData",
+                  type: "bytes",
+                },
+              ],
+              internalType: "struct ISpendPermissionManager.SpendPermission",
+              name: "spendPermission",
+              type: "tuple",
+            },
+            {
+              internalType: "bytes",
+              name: "signature",
+              type: "bytes",
+            },
+            {
+              internalType: "uint160",
+              name: "amount",
+              type: "uint160",
+            },
+          ],
+          name: "executeDepositUSDC",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "expertAgentAddress",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
           ],
           name: "getPlan",
           outputs: [
@@ -400,6 +638,11 @@ const deployedContracts = {
                   name: "active",
                   type: "bool",
                 },
+                {
+                  internalType: "bool",
+                  name: "rebalancingEnabled",
+                  type: "bool",
+                },
               ],
               internalType: "struct LumoContract.SIPPlan",
               name: "",
@@ -457,12 +700,76 @@ const deployedContracts = {
         {
           inputs: [
             {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint8",
+              name: "newAavePercent",
+              type: "uint8",
+            },
+            {
+              internalType: "uint8",
+              name: "newCompoundPercent",
+              type: "uint8",
+            },
+            {
+              internalType: "uint8",
+              name: "newUniswapPercent",
+              type: "uint8",
+            },
+          ],
+          name: "rebalance",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "uint256",
               name: "planId",
               type: "uint256",
             },
           ],
           name: "resumePlan",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_expertAgentAddress",
+              type: "address",
+            },
+          ],
+          name: "setExpertAgentAddress",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "planId",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "enabled",
+              type: "bool",
+            },
+          ],
+          name: "setRebalancing",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -615,6 +922,11 @@ const deployedContracts = {
               name: "active",
               type: "bool",
             },
+            {
+              internalType: "bool",
+              name: "rebalancingEnabled",
+              type: "bool",
+            },
           ],
           stateMutability: "view",
           type: "function",
@@ -625,7 +937,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 35301167,
+      deployedOnBlock: 35364352,
     },
     MockAave: {
       address: "0xF2182c3A96C755E07205B49C2C7B12e6db1f21F9",

@@ -24,28 +24,8 @@ export default function AppPage() {
   // Handle when chat completes the entire flow including permissions and contract creation
   const handlePlanComplete = (planId: number) => {
     console.log(`SIP Plan #${planId} completed successfully!`);
-    // Schedule automatic SIP execution after 60 seconds to test spend permission
-    console.log(`Scheduling automatic SIP execution for plan #${planId} in 60 seconds...`);
-    setTimeout(async () => {
-      try {
-        console.log(`Triggering automatic SIP execution for plan #${planId}...`);
-        const executeResponse = await fetch(`/api/sip/execute/${planId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        const executeData = await executeResponse.json();
-
-        if (executeResponse.ok) {
-          console.log("✅ SIP execution successful:", executeData);
-        } else {
-          console.error("❌ SIP execution failed:", executeData);
-        }
-      } catch (execError) {
-        console.error("❌ Error executing SIP:", execError);
-      }
-    }, 60000); // 60 seconds
-
+    // SIP execution will be handled by the cron job based on the permission period
+    // stored in the database (default: monthly)
     router.push("/dashboard");
   };
 

@@ -14,6 +14,18 @@ export const ChatMessage = ({ type, content, options, onOptionClick }: ChatMessa
 
   // Convert markdown-like formatting to JSX
   const formatContent = (text: string) => {
+    // Helper to convert markdown-style links and bold to HTML
+    const convertMarkdown = (str: string) => {
+      // Convert markdown links [text](url) to anchor tags
+      let result = str.replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-purple-400 hover:text-purple-300 underline transition-colors">$1</a>',
+      );
+      // Convert bold **text** to strong tags
+      result = result.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>');
+      return result;
+    };
+
     // Split by newlines and process each line
     return text.split("\n").map((line, i) => {
       // Handle bullet points
@@ -24,7 +36,7 @@ export const ChatMessage = ({ type, content, options, onOptionClick }: ChatMessa
             <span className="text-purple-400">•</span>
             <span
               dangerouslySetInnerHTML={{
-                __html: bulletContent.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>'),
+                __html: convertMarkdown(bulletContent),
               }}
             />
           </div>
@@ -40,14 +52,14 @@ export const ChatMessage = ({ type, content, options, onOptionClick }: ChatMessa
         );
       }
 
-      // Regular line with bold formatting
+      // Regular line with bold formatting and links
       if (line.trim()) {
         return (
           <p
             key={i}
             className="my-1"
             dangerouslySetInnerHTML={{
-              __html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>'),
+              __html: convertMarkdown(line),
             }}
           />
         );

@@ -8,8 +8,11 @@ import { useAccount, useChainId, useSignTypedData } from "wagmi";
 // Spend Permission Manager contract address (deployed on Base Sepolia)
 const SPEND_PERMISSION_MANAGER = "0xf85210B21cC50302F477BA56686d2019dC9b67Ad";
 
-// Native ETH address constant
+// Native ETH address constant (for agent payments)
 const NATIVE_ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+// USDC token address on Base Sepolia (for SIP investments)
+const USDC_BASE_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 
 // Server wallet addresses for SIP and Agent
 const SIP_SPENDER_ADDRESS = process.env.NEXT_PUBLIC_SPENDER_ADDRESS || "0x0000000000000000000000000000000000000000";
@@ -66,9 +69,20 @@ export const SpendPermissionModal = ({ type, amount, onSuccess, onCancel }: Spen
   // Get display description based on permission type
   const getDescription = () => {
     if (type === "sip") {
-      return `Allow Lumo to automatically invest up to ${amount} ETH per period for your SIP.`;
+      return `Allow Lumo to automatically invest up to ${amount} USDC per period for your SIP.`;
     }
-    return `Allow Lumo AI Agent to spend up to ${amount} ETH for strategy optimization and rebalancing.`;
+    return `Allow Lumo AI Agent to spend up to ${amount} ETH for strategy optimization.`;
+  };
+
+  // Get token address based on permission type
+  // SIP uses USDC, Agent uses ETH
+  const getTokenAddress = () => {
+    return type === "sip" ? USDC_BASE_SEPOLIA : NATIVE_ETH;
+  };
+
+  // Get token symbol for display
+  const getTokenSymbol = () => {
+    return type === "sip" ? "USDC" : "ETH";
   };
 
   const handleGrantPermission = async () => {
@@ -81,15 +95,20 @@ export const SpendPermissionModal = ({ type, amount, onSuccess, onCancel }: Spen
     setError(null);
 
     try {
-      const amountWei = parseEther(amount || "0.01");
       const now = Math.floor(Date.now() / 1000);
+
+      // For SIP permissions, use USDC amounts (6 decimals)
+      // For agent permissions, use ETH amounts (18 decimals)
+      const decimals = type === "sip" ? 6 : 18;
+      const parsedAmount =
+        type === "sip" ? BigInt(Math.floor(parseFloat(amount || "1") * 10 ** decimals)) : parseEther(amount || "0.01");
 
       const spendPermission: SpendPermission = {
         account: address as `0x${string}`,
         spender: getSpenderAddress() as `0x${string}`,
-        token: NATIVE_ETH as `0x${string}`,
-        allowance: amountWei,
-        period: 60, // 60 seconds for testing (should be 2592000 for monthly in production)
+        token: getTokenAddress() as `0x${string}`,
+        allowance: parsedAmount,
+        period: 2592000, // 30 days in seconds for monthly SIP
         start: now,
         end: now + 31536000, // Valid for 1 year
         salt: generateSalt(),
@@ -206,11 +225,13 @@ export const SpendPermissionModal = ({ type, amount, onSuccess, onCancel }: Spen
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Amount per period:</span>
-                      <span className="font-medium text-white">{amount} ETH</span>
+                      <span className="font-medium text-white">
+                        {amount} {getTokenSymbol()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Period:</span>
-                      <span className="font-medium text-white">60 seconds (testing)</span>
+                      <span className="font-medium text-white">Monthly (30 days)</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Valid for:</span>
@@ -314,6 +335,7 @@ export const SpendPermissionModal = ({ type, amount, onSuccess, onCancel }: Spen
 // Export the helper function to create serializable permission data
 export const serializeSpendPermission = (permission: SpendPermission, signature: string) => {
   return {
+    account: permission.account, // User's smart account address
     spender: permission.spender,
     token: permission.token,
     allowance: permission.allowance.toString(),
@@ -321,6 +343,7 @@ export const serializeSpendPermission = (permission: SpendPermission, signature:
     start: permission.start,
     end: permission.end,
     salt: permission.salt.toString(),
+    extraData: permission.extraData || "0x", // Default to empty bytes
     signature,
   };
 };
